@@ -14,8 +14,8 @@ import javax.sql.DataSource;
 @Configuration
 public class TransactionConfig {
 
-    private final static String DEFAULT = "master";
-    private final static String SLAVE = "slave";
+    private final static String DEFAULT = "master_tr";
+    private final static String SLAVE = "slave_tr";
 
     @Bean(name = TransactionConfig.DEFAULT)
     public DataSourceTransactionManager transactionManager(@Qualifier(DataSourceNames.MASTER)DataSource masterDataSource) {

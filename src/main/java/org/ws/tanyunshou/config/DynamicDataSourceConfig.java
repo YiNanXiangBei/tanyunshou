@@ -19,13 +19,13 @@ import java.util.Map;
 public class DynamicDataSourceConfig {
 
     @Bean(name = "master")
-    @ConfigurationProperties("master.datasource")
+    @ConfigurationProperties("spring.datasource.druid.master")
     public DataSource masterDataSource() {
         return DruidDataSourceBuilder.create().build();
     }
 
     @Bean(name = "slave")
-    @ConfigurationProperties("slave.datasource")
+    @ConfigurationProperties("spring.datasource.druid.cluster")
     public DataSource slaveDataSource() {
         return DruidDataSourceBuilder.create().build();
     }
