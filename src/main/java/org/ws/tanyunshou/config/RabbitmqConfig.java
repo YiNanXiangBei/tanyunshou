@@ -33,7 +33,7 @@ public class RabbitmqConfig {
     private SimpleRabbitListenerContainerFactoryConfigurer factoryConfigurer;
 
     /**
-     * 单个消费者
+     * 单个消费者,消费信息的容器工厂
      * @return SimpleRabbitListenerContainerFactory
      */
     @Bean(name = "singleListenerContainer")

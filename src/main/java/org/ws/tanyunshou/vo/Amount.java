@@ -1,13 +1,15 @@
 package org.ws.tanyunshou.vo;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 /**
  * @author yinan
  * @date created in 上午11:01 18-12-26
  */
-public class Amount {
+public class Amount implements Serializable {
 
+    private static final long serialVersionUID = 8358328135545873783L;
     /**
      * 自动生成的序号
      */
