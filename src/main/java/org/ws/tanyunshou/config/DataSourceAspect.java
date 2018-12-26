@@ -31,7 +31,7 @@ public class DataSourceAspect {
     }
 
     @Before("dataSourcePoint()")
-    public void around(JoinPoint point) throws Throwable {
+    public void around(JoinPoint point) {
         MethodSignature signature = (MethodSignature) point.getSignature();
         Method method = signature.getMethod();
         TargetDataSource dataSource = method.getAnnotation(TargetDataSource.class);

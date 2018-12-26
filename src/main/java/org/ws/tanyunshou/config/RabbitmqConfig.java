@@ -4,10 +4,8 @@ package org.ws.tanyunshou.config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.AcknowledgeMode;
-import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
-import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,8 +71,8 @@ public class RabbitmqConfig {
         connectionFactory.setPublisherReturns(true);
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setMandatory(true);
-        rabbitTemplate.setConfirmCallback((correlationData, b, s) -> log.info("消息发送成功：correlationData({}), ack({}), cause({})", correlationData, b, s));
-        rabbitTemplate.setReturnCallback((message, i, s, s1, s2) -> log.info("消息丢失：exchange({}), route({}), replyCode({}), replyText({}), message:{}", s1, s2, i, s, message));
+        rabbitTemplate.setConfirmCallback((correlationData, b, s) -> log.debug("消息发送成功：correlationData({}), ack({}), cause({})", correlationData, b, s));
+        rabbitTemplate.setReturnCallback((message, i, s, s1, s2) -> log.debug("消息丢失：exchange({}), route({}), replyCode({}), replyText({}), message:{}", s1, s2, i, s, message));
         return rabbitTemplate;
     }
 
