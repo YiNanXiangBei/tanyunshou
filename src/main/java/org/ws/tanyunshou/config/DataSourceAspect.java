@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
 
@@ -34,7 +35,7 @@ public class DataSourceAspect {
         MethodSignature signature = (MethodSignature) point.getSignature();
         Method method = signature.getMethod();
         TargetDataSource dataSource = method.getAnnotation(TargetDataSource.class);
-        if (dataSource == null) {
+        if (StringUtils.isEmpty(dataSource)) {
             DynamicDataSource.setDataSource(DataSourceNames.MASTER);
             logger.debug("set datasource is " + DataSourceNames.MASTER);
         } else {

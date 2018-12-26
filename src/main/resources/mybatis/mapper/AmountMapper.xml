@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.ws.tanyunshou.dao.IAmountDao">
+    <resultMap id="AmountResultMap" type="org.ws.tanyunshou.vo.Amount">
+        <id property="id" column="id" javaType="int" jdbcType="INTEGER" />
+        <result property="serialNo" column="serial_no" />
+        <result property="money" column="money" />
+        <result property="threadName" column="thread_name" />
+    </resultMap>
+
+    <select id="findAllAmounts" resultMap="AmountResultMap">
+        select serial_no, money, thread_name from amount
+    </select>
+    <select id="findAmountBySerialNo" resultMap="AmountResultMap" parameterType="String">
+        select serial_no, money, thread_name from amount t where t.serial_no = #{serialNo, jdbcType=VARCHAR}
+    </select>
+
+    <insert id="insertAmount" parameterType="org.ws.tanyunshou.vo.Amount">
+        insert into amount
+          <trim prefix="(" suffix=")" suffixOverrides=",">
+              <if test="serialNo != null">
+                  serial_no,
+              </if>
+              money,
+              <if test="threadName != null">
+                  thread_name
+              </if>
+          </trim>
+          <trim prefix="values (" suffix=")" suffixOverrides=",">
+              <if test="serialNo != null">
+                  #{serialNo, jdbcType=VARCHAR},
+              </if>
+              #{money, jdbcType=DECIMAL},
+              <if test="threadName != null">
+                  #{threadName, jdbcType=VARCHAR}
+              </if>
+          </trim>
+    </insert>
+
+
+    <update id="updateAmount" parameterType="org.ws.tanyunshou.vo.Amount">
+        update amount
+        <set>
+            <if test="threadName != null">
+                #{threadName, jdbcType=VARCHAR}
+            </if>
+            #{money, jdbcType=DECIMAL}
+        </set>
+        where serial_no = #{serialNo, jdbcType=VARCHAR}
+    </update>
+</mapper>

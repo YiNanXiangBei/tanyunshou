@@ -1,6 +1,7 @@
 package org.ws.tanyunshou.config;
 
 import com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceBuilder;
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -19,6 +20,7 @@ import java.util.Map;
 public class DynamicDataSourceConfig {
 
     @Bean(name = "master")
+    @Primary
     @ConfigurationProperties("spring.datasource.druid.master")
     public DataSource masterDataSource() {
         return DruidDataSourceBuilder.create().build();
@@ -31,7 +33,6 @@ public class DynamicDataSourceConfig {
     }
 
     @Bean
-    @Primary
     public DynamicDataSource dataSource(@Qualifier("master") DataSource masterDataSource, @Qualifier("slave") DataSource slaveDataSource) {
         Map<String, DataSource> targetDataSources = new HashMap<>();
         targetDataSources.put(DataSourceNames.MASTER, masterDataSource);
