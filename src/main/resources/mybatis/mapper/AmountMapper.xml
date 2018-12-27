@@ -39,13 +39,11 @@
 
 
     <update id="updateAmount" parameterType="org.ws.tanyunshou.vo.Amount">
-        update amount
-        <set>
-            <if test="threadName != null">
-                #{threadName, jdbcType=VARCHAR}
-            </if>
-            #{money, jdbcType=DECIMAL}
-        </set>
+        update amount set
+        <if test="threadName != null">
+            thread_name = #{threadName, jdbcType=VARCHAR},
+        </if>
+            money = #{money, jdbcType=DECIMAL}
         where serial_no = #{serialNo, jdbcType=VARCHAR}
     </update>
 </mapper>

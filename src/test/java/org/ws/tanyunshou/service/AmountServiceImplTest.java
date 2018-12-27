@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 import org.ws.tanyunshou.dao.IAmountDao;
@@ -27,6 +28,9 @@ import static org.junit.Assert.*;
 public class AmountServiceImplTest {
     @Autowired
     private IAmountService amountService;
+
+    @Autowired
+    private RedisTemplate<String, Amount> redisTemplate;
 
     @Test
     public void findAmountBySerialNo() {
@@ -50,6 +54,13 @@ public class AmountServiceImplTest {
 
     @Test
     public void updateAmount() {
+        Amount amount = new Amount("weea1313ee12", new BigDecimal(101), Thread.currentThread().getName());
+        amountService.updateAmount(amount);
+    }
 
+    @Test
+    public void testAmount() {
+        Amount amount = (Amount) redisTemplate.opsForValue().get("tanyunshou_amount::weea1313ee12");
+        Assert.assertEquals(amount.getMoney(), 100);
     }
 }

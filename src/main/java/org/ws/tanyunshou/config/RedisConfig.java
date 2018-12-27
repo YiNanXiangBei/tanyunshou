@@ -15,9 +15,11 @@ import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.cache.RedisCacheWriter;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.ws.tanyunshou.vo.Amount;
 
 import java.time.Duration;
 
@@ -30,8 +32,8 @@ import java.time.Duration;
 @EnableCaching
 public class RedisConfig extends CachingConfigurerSupport {
     @Bean
-    public RedisTemplate<String, String> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
-        RedisTemplate<String, String> redisTemplate = new RedisTemplate<>();
+    public RedisTemplate<String, Amount> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+        RedisTemplate<String, Amount> redisTemplate = new RedisTemplate<>();
         this.initRedisTemplate(redisTemplate, redisConnectionFactory);
         redisTemplate.afterPropertiesSet();
         return redisTemplate;
@@ -40,9 +42,23 @@ public class RedisConfig extends CachingConfigurerSupport {
     @SuppressWarnings("rawtypes")
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory factory) {
+
+        // 使用Jackson2JsonRedisSerialize 替换默认序列化
+        Jackson2JsonRedisSerializer<Amount> serializer = new Jackson2JsonRedisSerializer<>(Amount.class);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+        objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+
+        serializer.setObjectMapper(objectMapper);
+
+
         //设置缓存有效期时间为1小时
         RedisCacheConfiguration redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofHours(1));
+                .entryTtl(Duration.ofHours(1))
+                .disableCachingNullValues()
+                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(serializer));
 
         return RedisCacheManager
                 .builder(RedisCacheWriter.nonLockingRedisCacheWriter(factory))
@@ -51,14 +67,16 @@ public class RedisConfig extends CachingConfigurerSupport {
 
     }
 
-    private void initRedisTemplate(RedisTemplate<String, String> redisTemplate, RedisConnectionFactory factory) {
-        //使用Jackson2JsonRedisSerializer来序列化和反序列化redis的value值
-        Jackson2JsonRedisSerializer serializer = new Jackson2JsonRedisSerializer(Object.class);
+    private void initRedisTemplate(RedisTemplate<String, Amount> redisTemplate, RedisConnectionFactory factory) {
+        // 使用Jackson2JsonRedisSerialize 替换默认序列化
+        Jackson2JsonRedisSerializer<Amount> serializer = new Jackson2JsonRedisSerializer<>(Amount.class);
 
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
-        mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
-        serializer.setObjectMapper(mapper);
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+        objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+
+        serializer.setObjectMapper(objectMapper);
+
 
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         redisTemplate.setHashKeySerializer(new StringRedisSerializer());
