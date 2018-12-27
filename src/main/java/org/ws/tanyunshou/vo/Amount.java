@@ -36,6 +36,14 @@ public class Amount implements Serializable {
         this.threadName = threadName;
     }
 
+    /**
+     * 添加默认构造函数，用于GenericJackson2JsonRedisSerializer反序列化
+     */
+    private Amount() {
+
+    }
+
+
     public int getId() {
         return id;
     }

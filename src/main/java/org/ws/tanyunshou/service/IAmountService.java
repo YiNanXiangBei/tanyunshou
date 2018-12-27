@@ -13,8 +13,8 @@ public interface IAmountService {
 
     List<Amount> findAllAmounts();
 
-    void insertAmount(Amount amount);
+    Amount insertAmount(Amount amount);
 
-    void updateAmount(Amount amount);
+    Amount updateAmount(Amount amount);
 
 }

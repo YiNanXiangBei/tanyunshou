@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -25,12 +26,13 @@ import static org.junit.Assert.*;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
 //@Transactional
+@EnableCaching
 public class AmountServiceImplTest {
     @Autowired
     private IAmountService amountService;
 
     @Autowired
-    private RedisTemplate<String, Amount> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Test
     public void findAmountBySerialNo() {
@@ -61,6 +63,6 @@ public class AmountServiceImplTest {
     @Test
     public void testAmount() {
         Amount amount = (Amount) redisTemplate.opsForValue().get("tanyunshou_amount::weea1313ee12");
-        Assert.assertEquals(amount.getMoney(), 100);
+        Assert.assertEquals(amount.getMoney(), new BigDecimal(100));
     }
 }

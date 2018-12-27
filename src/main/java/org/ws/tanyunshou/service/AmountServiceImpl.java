@@ -19,8 +19,8 @@ import java.util.List;
  * @author yinan
  * @date created in 上午11:08 18-12-26
  */
-@CacheConfig(cacheNames = RedisConstant.AMOUNT_CACHE_NAMES)
 @Service
+@CacheConfig(cacheNames = RedisConstant.AMOUNT_CACHE_NAMES)
 public class AmountServiceImpl implements IAmountService{
     private static Logger logger = LoggerFactory.getLogger(AmountServiceImpl.class);
 
@@ -45,16 +45,18 @@ public class AmountServiceImpl implements IAmountService{
     @CachePut(key = "#amount.serialNo")
     @TargetDataSource
     @Override
-    public void insertAmount(Amount amount) {
+    public Amount insertAmount(Amount amount) {
         logger.info("insertAmount, amount: {}, thread name: {}", amount.toString(), Thread.currentThread().getName());
         amountDao.insertAmount(amount);
+        return amount;
     }
 
     @CachePut(key = "#amount.serialNo")
     @TargetDataSource
     @Override
-    public void updateAmount(Amount amount) {
+    public Amount updateAmount(Amount amount) {
         logger.info("updateAmount, amount: {}, thread name: {}", amount.toString(), Thread.currentThread().getName());
         amountDao.updateAmount(amount);
+        return amount;
     }
 }
