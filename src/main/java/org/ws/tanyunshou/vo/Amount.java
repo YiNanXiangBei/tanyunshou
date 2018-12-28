@@ -36,6 +36,13 @@ public class Amount implements Serializable {
         this.threadName = threadName;
     }
 
+    public Amount(int id, String serialNo, BigDecimal money, String threadName) {
+        this.id = id;
+        this.serialNo = serialNo;
+        this.money = money;
+        this.threadName = threadName;
+    }
+
     /**
      * 添加默认构造函数，用于GenericJackson2JsonRedisSerializer反序列化
      */

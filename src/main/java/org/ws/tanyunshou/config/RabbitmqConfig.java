@@ -70,6 +70,7 @@ public class RabbitmqConfig {
         connectionFactory.setPublisherConfirms(true);
         connectionFactory.setPublisherReturns(true);
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
+        rabbitTemplate.setMessageConverter(new Jackson2JsonMessageConverter());
         rabbitTemplate.setMandatory(true);
         rabbitTemplate.setConfirmCallback((correlationData, b, s) -> log.debug("消息发送成功：correlationData({}), ack({}), cause({})", correlationData, b, s));
         rabbitTemplate.setReturnCallback((message, i, s, s1, s2) -> log.debug("消息丢失：exchange({}), route({}), replyCode({}), replyText({}), message:{}", s1, s2, i, s, message));

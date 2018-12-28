@@ -63,6 +63,6 @@ public class AmountServiceImplTest {
     @Test
     public void testAmount() {
         Amount amount = (Amount) redisTemplate.opsForValue().get("tanyunshou_amount::weea1313ee12");
-        Assert.assertEquals(amount.getMoney(), new BigDecimal(100));
+        Assert.assertEquals(amount.getMoney(), new BigDecimal(101));
     }
 }
