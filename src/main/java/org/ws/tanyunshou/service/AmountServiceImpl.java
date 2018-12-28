@@ -69,11 +69,13 @@ public class AmountServiceImpl implements IAmountService{
      * @param amount
      * @return
      */
-    @Transactional(value = "master_tr")
+//    @Transactional(value = "master_tr")
     @CachePut(key = "#amount.serialNo")
     @TargetDataSource
     @Override
     public Amount updateAmount(Amount amount) {
+        Amount oldAmount = amountDao.findAmountBySerialNo(amount.getSerialNo());
+        amount.setMoney(amount.getMoney().add(oldAmount.getMoney()));
         logger.info("updateAmount, amount: {}, thread name: {}", amount.toString(), Thread.currentThread().getName());
         amountDao.updateAmount(amount);
         return amount;

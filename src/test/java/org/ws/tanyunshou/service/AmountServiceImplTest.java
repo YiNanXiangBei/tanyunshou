@@ -19,6 +19,10 @@ import org.ws.tanyunshou.vo.Amount;
 import java.util.List;
 
 import java.math.BigDecimal;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 
@@ -66,8 +70,33 @@ public class AmountServiceImplTest {
     }
 
     @Test
-    public void testAmount() {
-        Amount amount = (Amount) redisTemplate.opsForValue().get("tanyunshou_amount::weea1313ee12");
-        Assert.assertEquals(amount.getMoney(), new BigDecimal(101));
+    public void testAmount() throws InterruptedException {
+        ThreadPoolExecutor poolExecutor = new ThreadPoolExecutor(10, 10,
+                5, TimeUnit.SECONDS, new SynchronousQueue<>(),
+                r -> new Thread(r, "amount_pool_" + r.hashCode()),
+                new ThreadPoolExecutor.DiscardOldestPolicy());
+        UpdateTaskTest task1 = new UpdateTaskTest(new BigDecimal(10), "weea1313ee12");
+        UpdateTaskTest task2 = new UpdateTaskTest(new BigDecimal(-1), "weea1313ee12");
+        UpdateTaskTest task3 = new UpdateTaskTest(new BigDecimal(5), "weea1313ee12");
+        UpdateTaskTest task4 = new UpdateTaskTest(new BigDecimal(-6), "weea1313ee12");
+        UpdateTaskTest task5 = new UpdateTaskTest(new BigDecimal(4), "weea1313ee12");
+        UpdateTaskTest task6 = new UpdateTaskTest(new BigDecimal(-2), "weea1313ee12");
+        UpdateTaskTest task7 = new UpdateTaskTest(new BigDecimal(8), "weea1313ee12");
+        UpdateTaskTest task8 = new UpdateTaskTest(new BigDecimal(1), "weea1313ee12");
+        UpdateTaskTest task9 = new UpdateTaskTest(new BigDecimal(-10), "weea1313ee12");
+        UpdateTaskTest task10 = new UpdateTaskTest(new BigDecimal(5), "weea1313ee12");
+
+        TimeUnit.SECONDS.sleep(5);
+        poolExecutor.execute(task1);
+        poolExecutor.execute(task2);
+        poolExecutor.execute(task3);
+        poolExecutor.execute(task4);
+        poolExecutor.execute(task5);
+        poolExecutor.execute(task6);
+        poolExecutor.execute(task7);
+        poolExecutor.execute(task8);
+        poolExecutor.execute(task9);
+        poolExecutor.execute(task10);
+
     }
 }
