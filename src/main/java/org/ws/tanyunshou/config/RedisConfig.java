@@ -13,6 +13,7 @@ import org.springframework.data.redis.cache.RedisCacheWriter;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.*;
+import org.ws.tanyunshou.redis.RedisConstant;
 
 import java.time.Duration;
 
@@ -39,7 +40,7 @@ public class RedisConfig extends CachingConfigurerSupport {
         //设置缓存有效期时间为1小时
         //此处的序列化主要用在缓存中
         RedisCacheConfiguration redisCacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofHours(1))
+                .entryTtl(Duration.ofMinutes(RedisConstant.CACHE_EXPIRE_TIME))
                 .disableCachingNullValues()
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair

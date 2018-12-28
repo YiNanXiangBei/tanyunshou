@@ -7,6 +7,7 @@ import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.ws.tanyunshou.config.DataSourceNames;
 import org.ws.tanyunshou.config.TargetDataSource;
 import org.ws.tanyunshou.dao.IAmountDao;
@@ -42,6 +43,15 @@ public class AmountServiceImpl implements IAmountService{
         return amountDao.findAllAmounts();
     }
 
+    /**
+     * 插入数据进数据库
+     * @Transactional 数据库事务
+     * @CachePut redis缓存
+     * @TragetDataSource 默认的数据源
+     * @param amount
+     * @return
+     */
+    @Transactional(value = "master_tr")
     @CachePut(key = "#amount.serialNo")
     @TargetDataSource
     @Override
@@ -51,6 +61,15 @@ public class AmountServiceImpl implements IAmountService{
         return amount;
     }
 
+    /***
+     * 更新数据
+     * @Transactional 数据库事务
+     * @CachePut redis缓存
+     * @TragetDataSource 默认的数据源
+     * @param amount
+     * @return
+     */
+    @Transactional(value = "master_tr")
     @CachePut(key = "#amount.serialNo")
     @TargetDataSource
     @Override
