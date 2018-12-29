@@ -15,6 +15,6 @@ public interface IAmountService {
 
     Amount insertAmount(Amount amount);
 
-    Amount updateAmount(Amount amount);
+    Amount  updateAmount(Amount amount);
 
 }

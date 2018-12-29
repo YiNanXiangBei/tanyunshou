@@ -15,6 +15,9 @@ import org.ws.tanyunshou.redis.RedisConstant;
 import org.ws.tanyunshou.vo.Amount;
 
 import java.util.List;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * @author yinan
@@ -25,10 +28,12 @@ import java.util.List;
 public class AmountServiceImpl implements IAmountService{
     private static Logger logger = LoggerFactory.getLogger(AmountServiceImpl.class);
 
+    private ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+
     @Autowired
     private IAmountDao amountDao;
 
-    @Cacheable(key = "#serialNo")
+//    @Cacheable(key = "#serialNo")
     @TargetDataSource(name = DataSourceNames.SLAVE)
     @Override
     public Amount findAmountBySerialNo(String serialNo) {
@@ -69,15 +74,19 @@ public class AmountServiceImpl implements IAmountService{
      * @param amount
      * @return
      */
-//    @Transactional(value = "master_tr")
-    @CachePut(key = "#amount.serialNo")
+    @Transactional(value = "master_tr")
+//    @CachePut(key = "#amount.serialNo")
     @TargetDataSource
     @Override
     public Amount updateAmount(Amount amount) {
+        readWriteLock.writeLock().lock();
+        logger.info("begin to get ...");
         Amount oldAmount = amountDao.findAmountBySerialNo(amount.getSerialNo());
+        logger.info(oldAmount.toString());
         amount.setMoney(amount.getMoney().add(oldAmount.getMoney()));
         logger.info("updateAmount, amount: {}, thread name: {}", amount.toString(), Thread.currentThread().getName());
         amountDao.updateAmount(amount);
+        readWriteLock.writeLock().unlock();
         return amount;
     }
 }

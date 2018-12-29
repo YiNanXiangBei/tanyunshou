@@ -11,15 +11,15 @@ import java.math.BigDecimal;
  */
 public class UpdateTaskTest implements Runnable {
 
-    @Autowired
     private IAmountService amountService;
 
-    public BigDecimal money;
+    private BigDecimal money;
 
-    public String serialNo;
+    private String serialNo;
 
 
-    public UpdateTaskTest(BigDecimal money, String serialNo) {
+    public UpdateTaskTest(IAmountService amountService, BigDecimal money, String serialNo) {
+        this.amountService = amountService;
         this.money = money;
         this.serialNo = serialNo;
     }
