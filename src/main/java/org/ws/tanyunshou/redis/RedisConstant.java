@@ -14,7 +14,7 @@ public class RedisConstant {
     /**
      * 缓存过期时间
      */
-    public static final int CACHE_EXPIRE_TIME = 1;
+    public static final int CACHE_EXPIRE_TIME = 60;
 
 
 }

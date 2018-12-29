@@ -14,6 +14,7 @@ import org.ws.tanyunshou.dao.IAmountDao;
 import org.ws.tanyunshou.redis.RedisConstant;
 import org.ws.tanyunshou.vo.Amount;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -33,7 +34,7 @@ public class AmountServiceImpl implements IAmountService{
     @Autowired
     private IAmountDao amountDao;
 
-//    @Cacheable(key = "#serialNo")
+    @Cacheable(key = "#serialNo")
     @TargetDataSource(name = DataSourceNames.SLAVE)
     @Override
     public Amount findAmountBySerialNo(String serialNo) {
@@ -68,25 +69,33 @@ public class AmountServiceImpl implements IAmountService{
 
     /***
      * 更新数据
-     * @Transactional 数据库事务
-     * @CachePut redis缓存
+     * @CachePut 保存进redis
      * @TragetDataSource 默认的数据源
      * @param amount
      * @return
      */
-    @Transactional(value = "master_tr")
-//    @CachePut(key = "#amount.serialNo")
+    @CachePut(key = "#amount.serialNo")
     @TargetDataSource
     @Override
     public Amount updateAmount(Amount amount) {
         readWriteLock.writeLock().lock();
-        logger.info("begin to get ...");
         Amount oldAmount = amountDao.findAmountBySerialNo(amount.getSerialNo());
-        logger.info(oldAmount.toString());
         amount.setMoney(amount.getMoney().add(oldAmount.getMoney()));
         logger.info("updateAmount, amount: {}, thread name: {}", amount.toString(), Thread.currentThread().getName());
-        amountDao.updateAmount(amount);
+        rellayUpdateAmount(amount);
         readWriteLock.writeLock().unlock();
         return amount;
+    }
+
+    /**
+     * 独立事务
+     * 解决事务与锁机制无法一起使用的问题
+     * @param amount
+     * @return
+     */
+    @Transactional(value = "master_tr", rollbackFor = SQLException.class)
+    @TargetDataSource
+    public void rellayUpdateAmount(Amount amount) {
+        amountDao.updateAmount(amount);
     }
 }
