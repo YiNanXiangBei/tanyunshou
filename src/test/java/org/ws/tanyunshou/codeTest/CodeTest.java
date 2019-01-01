@@ -12,11 +12,11 @@ import java.math.BigDecimal;
 public class CodeTest {
 
 
-    @Test
-    public void test() {
-        BigDecimal decimal = new BigDecimal(10);
-        decimal = decimal.add(new BigDecimal(-1));
-        System.out.println(decimal.toString());
+
+    public static void main(String[] args) {
+        synchronized (CodeTest.class) {
+            System.out.println("Synchronize");
+        }
     }
 
 }
