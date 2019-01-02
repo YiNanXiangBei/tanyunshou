@@ -28,4 +28,16 @@ public class RabbitProducerTest {
         Amount amount = new Amount("12ewe11", new BigDecimal(212), Thread.currentThread().getName());
         producer.sendMessage(amount);
     }
+
+
+    @Test
+    public void sendMoney() {
+        BigDecimal bigDecimal = new BigDecimal("1000");
+        producer.sendMoney(bigDecimal);
+    }
+
+    @Test
+    public void sendSerialNo() {
+        producer.sendSerialNo("e2da82c24e254bbaa324e4cb662f2ee6");
+    }
 }

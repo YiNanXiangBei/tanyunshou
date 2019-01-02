@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.ws.tanyunshou.mq.RabbitProducer;
 import org.ws.tanyunshou.service.IAmountService;
 import org.ws.tanyunshou.task.GetAmountTask;
 import org.ws.tanyunshou.task.IncreaseAmountTask;
@@ -29,19 +30,18 @@ public class AmountController {
     @Autowired
     private IAmountService amountService;
 
-    private ThreadPoolExecutor incPoolExec = new ThreadPoolExecutor(10, 15,
-            1, TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>(), r -> new Thread(r, "inc_amount_pool_" + r.hashCode()));
+    @Autowired
+    private RabbitProducer producer;
 
     private ThreadPoolExecutor updatePoolExec = new ThreadPoolExecutor(10, 15,
-            10, TimeUnit.SECONDS, new LinkedBlockingQueue<>(), r -> new Thread(r, "update_amount_pool_" + r.hashCode()));
+            10, TimeUnit.SECONDS, new LinkedBlockingQueue<>(30), r -> new Thread(r, "update_amount_pool_" + r.hashCode()));
 
     private ThreadPoolExecutor getPoolExec = new ThreadPoolExecutor(20, 30, 10,
-            TimeUnit.SECONDS, new LinkedBlockingQueue<>(), r -> new Thread(r, "get_amount_pool_" + r.hashCode()));
+            TimeUnit.SECONDS, new LinkedBlockingQueue<>(50), r -> new Thread(r, "get_amount_pool_" + r.hashCode()));
 
     @PostMapping(value = "/add")
     public void addAmount(BigDecimal money) {
-        incPoolExec.execute(new IncreaseAmountTask(amountService, money, CommonTools.getUUID()));
+        producer.sendMoney(money);
     }
 
     @PostMapping(value = "/update")

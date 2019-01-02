@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.ws.tanyunshou.vo.Amount;
 
+import java.math.BigDecimal;
+
 /**
  * @author yinan
  * @date created in 下午1:09 18-12-26
@@ -23,14 +25,22 @@ public class RabbitProducer {
 
     private static Logger logger = LoggerFactory.getLogger(RabbitProducer.class);
 
-
-
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
     public void sendMessage(Amount amount) {
         logger.debug("send message: {}", amount.toString());
         rabbitTemplate.convertAndSend(RabbitConstant.EXCHANGE, RabbitConstant.AMOUNT_ROUTING_KEY, amount);
+    }
+
+    public void sendMoney(BigDecimal money) {
+        logger.debug("send money: {}", money);
+        rabbitTemplate.convertAndSend(RabbitConstant.EXCHANGE, RabbitConstant.MONEY_ROUTING_KEY, money);
+    }
+
+    public void sendSerialNo(String serialNo) {
+        logger.debug("send serial no: {}", serialNo);
+        rabbitTemplate.convertAndSend(RabbitConstant.EXCHANGE, RabbitConstant.SERIAL_ROUTING_KEY, serialNo);
     }
 
 }

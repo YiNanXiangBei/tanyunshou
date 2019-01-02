@@ -4,6 +4,7 @@ import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.TopicExchange;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.ws.tanyunshou.mq.RabbitConstant;
@@ -15,9 +16,19 @@ import org.ws.tanyunshou.mq.RabbitConstant;
 @Configuration
 public class TopicRabbitConfig {
 
-    @Bean
+    @Bean(name = "amountQueue")
     public Queue amountQueue() {
         return new Queue(RabbitConstant.AMOUNT_QUEUE);
+    }
+
+    @Bean(name = "moneyQueue")
+    public Queue moneyQueue() {
+        return new Queue(RabbitConstant.MONEY_QUEUE);
+    }
+
+    @Bean(name = "serialNoQueue")
+    public Queue serialNoQueue() {
+        return new Queue(RabbitConstant.SERIAL_NO_QUEUE);
     }
 
     @Bean
@@ -26,7 +37,21 @@ public class TopicRabbitConfig {
     }
 
     @Bean
-    public Binding bindingExchangeQueue(Queue queue, TopicExchange exchange) {
+    public Binding bindingAmountExchangeQueue(@Qualifier("amountQueue") Queue queue, TopicExchange exchange) {
         return BindingBuilder.bind(queue).to(exchange).with(RabbitConstant.AMOUNT_ROUTING_KEY);
     }
+
+    @Bean
+    public Binding bindingMoneyExchangeQueue(@Qualifier("moneyQueue") Queue queue, TopicExchange exchange) {
+        return BindingBuilder.bind(queue).to(exchange).with(RabbitConstant.MONEY_ROUTING_KEY);
+    }
+
+    @Bean
+    public Binding bindingSerialNoExQueue(@Qualifier("serialNoQueue") Queue queue, TopicExchange exchange) {
+        return BindingBuilder.bind(queue).to(exchange).with(RabbitConstant.SERIAL_ROUTING_KEY);
+    }
+
+
+
+
 }
