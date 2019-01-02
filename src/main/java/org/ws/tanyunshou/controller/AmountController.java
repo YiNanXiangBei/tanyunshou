@@ -31,13 +31,13 @@ public class AmountController {
 
     private ThreadPoolExecutor incPoolExec = new ThreadPoolExecutor(10, 15,
             1, TimeUnit.SECONDS,
-            new LinkedBlockingDeque<>(), r -> new Thread(r, "inc_amount_pool_" + r.hashCode()));
+            new LinkedBlockingQueue<>(), r -> new Thread(r, "inc_amount_pool_" + r.hashCode()));
 
     private ThreadPoolExecutor updatePoolExec = new ThreadPoolExecutor(10, 15,
-            10, TimeUnit.SECONDS, new LinkedBlockingDeque<>(100), r -> new Thread(r, "update_amount_pool_" + r.hashCode()));
+            10, TimeUnit.SECONDS, new LinkedBlockingQueue<>(100), r -> new Thread(r, "update_amount_pool_" + r.hashCode()));
 
     private ThreadPoolExecutor getPoolExec = new ThreadPoolExecutor(20, 30, 10,
-            TimeUnit.SECONDS, new LinkedBlockingDeque<>(50), r -> new Thread(r, "get_amount_pool_" + r.hashCode()));
+            TimeUnit.SECONDS, new LinkedBlockingQueue<>(50), r -> new Thread(r, "get_amount_pool_" + r.hashCode()));
 
     @PostMapping(value = "/add")
     public void addAmount(BigDecimal money) {
