@@ -30,13 +30,15 @@ public class AmountController {
     private IAmountService amountService;
 
     private ThreadPoolExecutor incPoolExec = new ThreadPoolExecutor(10, 15,
-            10, TimeUnit.SECONDS, new SynchronousQueue<>(), r -> new Thread(r, "inc_amount_pool_" + r.hashCode()));
+            1, TimeUnit.SECONDS,
+            new ArrayBlockingQueue<>(50, true), r -> new Thread(r, "inc_amount_pool_" + r.hashCode()),
+            new ThreadPoolExecutor.CallerRunsPolicy());
 
     private ThreadPoolExecutor updatePoolExec = new ThreadPoolExecutor(10, 15,
-            10, TimeUnit.SECONDS, new SynchronousQueue<>(), r -> new Thread(r, "update_amount_pool_" + r.hashCode()));
+            10, TimeUnit.SECONDS, new LinkedBlockingDeque<>(100), r -> new Thread(r, "update_amount_pool_" + r.hashCode()));
 
     private ThreadPoolExecutor getPoolExec = new ThreadPoolExecutor(20, 30, 10,
-            TimeUnit.SECONDS, new SynchronousQueue<>(), r -> new Thread(r, "get_amount_pool_" + r.hashCode()));
+            TimeUnit.SECONDS, new LinkedBlockingDeque<>(50), r -> new Thread(r, "get_amount_pool_" + r.hashCode()));
 
     @PostMapping(value = "/add")
     public void addAmount(BigDecimal money) {

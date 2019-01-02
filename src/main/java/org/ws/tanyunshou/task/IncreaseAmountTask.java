@@ -30,7 +30,7 @@ public class IncreaseAmountTask implements Runnable {
     @Override
     public void run() {
         String threadName = Thread.currentThread().getName();
-        logger.debug("increase amount task , money: {}, serialNo: {}, thread name: {}", money, serialNo, threadName);
+        logger.info("increase amount task , money: {}, serialNo: {}, thread name: {}", money, serialNo, threadName);
         amountService.insertAmount(new Amount(serialNo, money, threadName));
     }
 }
