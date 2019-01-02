@@ -66,9 +66,7 @@ public class RabbitConsumer {
                 RabbitConstant.SERIAL_NO_QUEUE, Thread.currentThread().getName());
         CompletableFuture
                 .supplyAsync(() -> amountService.findAmountBySerialNo(serialNo), getPoolExec)
-                .thenAccept(amount -> {
-                    HttpRequestMap.put(serialNo, amount);
-                });
+                .thenAccept(amount -> HttpRequestMap.put(serialNo, amount));
     }
 
 

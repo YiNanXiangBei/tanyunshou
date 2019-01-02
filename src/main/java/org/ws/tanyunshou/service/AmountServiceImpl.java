@@ -77,12 +77,15 @@ public class AmountServiceImpl implements IAmountService{
     @TargetDataSource
     @Override
     public Amount updateAmount(Amount amount) {
-        readWriteLock.writeLock().lock();
-        Amount oldAmount = amountDao.findAmountBySerialNo(amount.getSerialNo());
-        amount.setMoney(amount.getMoney().add(oldAmount.getMoney()));
-        logger.info("updateAmount, amount: {}, thread name: {}", amount.toString(), Thread.currentThread().getName());
-        reallyUpdateAmount(amount);
-        readWriteLock.writeLock().unlock();
+        try {
+            readWriteLock.writeLock().lock();
+            Amount oldAmount = amountDao.findAmountBySerialNo(amount.getSerialNo());
+            amount.setMoney(amount.getMoney().add(oldAmount.getMoney()));
+            logger.info("updateAmount, amount: {}, thread name: {}", amount.toString(), Thread.currentThread().getName());
+            reallyUpdateAmount(amount);
+        } finally {
+            readWriteLock.writeLock().unlock();
+        }
         return amount;
     }
 
