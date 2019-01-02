@@ -66,15 +66,11 @@ public class RabbitConsumer {
     public void processSerialNo(String serialNo) {
         logger.info("get serial no: {}, queue name: {}, current thread: {}", serialNo,
                 RabbitConstant.SERIAL_NO_QUEUE, Thread.currentThread().getName());
-        Future<Amount> result = getPoolExec.submit(new GetAmountTask(amountService, serialNo));
-        while (!result.isDone()) {
-
-        }
-        try {
-            HttpRequestMap.put(serialNo, result.get());
-        } catch (InterruptedException | ExecutionException e) {
-            logger.warn("can not get amount now, for serial no is : {}", serialNo);
-        }
+        CompletableFuture
+                .supplyAsync(() -> amountService.findAmountBySerialNo(serialNo))
+                .thenAccept(amount -> {
+                    HttpRequestMap.put(serialNo, amount);
+                });
     }
 
 
