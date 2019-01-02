@@ -81,7 +81,7 @@ public class AmountServiceImpl implements IAmountService{
         Amount oldAmount = amountDao.findAmountBySerialNo(amount.getSerialNo());
         amount.setMoney(amount.getMoney().add(oldAmount.getMoney()));
         logger.info("updateAmount, amount: {}, thread name: {}", amount.toString(), Thread.currentThread().getName());
-        rellayUpdateAmount(amount);
+        reallyUpdateAmount(amount);
         readWriteLock.writeLock().unlock();
         return amount;
     }
@@ -94,7 +94,7 @@ public class AmountServiceImpl implements IAmountService{
      */
     @Transactional(value = "master_tr", rollbackFor = SQLException.class)
     @TargetDataSource
-    public void rellayUpdateAmount(Amount amount) {
+    public void reallyUpdateAmount(Amount amount) {
         amountDao.updateAmount(amount);
     }
 }

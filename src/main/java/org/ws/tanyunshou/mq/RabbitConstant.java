@@ -19,7 +19,7 @@ public class RabbitConstant {
     /**
      * 队列名称
      */
-    public static final String SERIAL_NO_QUEUE = "tanyunshou.queue";
+    public static final String SERIAL_NO_QUEUE = "tanyunshou.serialno";
 
     /**
      * 交换机名称

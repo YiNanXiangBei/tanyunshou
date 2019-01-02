@@ -12,6 +12,7 @@ import org.ws.tanyunshou.task.GetAmountTask;
 import org.ws.tanyunshou.task.IncreaseAmountTask;
 import org.ws.tanyunshou.task.UpdateAmountTask;
 import org.ws.tanyunshou.util.CommonTools;
+import org.ws.tanyunshou.util.HttpRequestMap;
 import org.ws.tanyunshou.vo.Amount;
 
 import javax.servlet.http.HttpServletRequest;
@@ -33,11 +34,6 @@ public class AmountController {
     @Autowired
     private RabbitProducer producer;
 
-    private ThreadPoolExecutor updatePoolExec = new ThreadPoolExecutor(10, 15,
-            10, TimeUnit.SECONDS, new LinkedBlockingQueue<>(30), r -> new Thread(r, "update_amount_pool_" + r.hashCode()));
-
-    private ThreadPoolExecutor getPoolExec = new ThreadPoolExecutor(20, 30, 10,
-            TimeUnit.SECONDS, new LinkedBlockingQueue<>(50), r -> new Thread(r, "get_amount_pool_" + r.hashCode()));
 
     @PostMapping(value = "/add")
     public void addAmount(BigDecimal money) {
@@ -46,19 +42,16 @@ public class AmountController {
 
     @PostMapping(value = "/update")
     public void updateAmount(Amount amount) {
-        updatePoolExec.execute(new UpdateAmountTask(amountService, amount));
+        producer.sendMessage(amount);
     }
 
     @GetMapping(value = "/get")
     public Amount findAmount(String serialNo) {
-        Future<Amount> result = getPoolExec.submit(new GetAmountTask(amountService, serialNo));
-        while (!result.isDone()) {
-
-        }
+        producer.sendSerialNo(serialNo);
         try {
-            return result.get();
-        } catch (InterruptedException | ExecutionException e) {
-            logger.warn("can not get amount now, for serial no is : {}", serialNo);
+            return HttpRequestMap.take(serialNo);
+        } catch (InterruptedException e) {
+            logger.error("can not get amount, serial no: {}", serialNo);
         }
         return null;
     }
