@@ -7,7 +7,6 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.ws.tanyunshou.service.IAmountService;
-import org.ws.tanyunshou.task.GetAmountTask;
 import org.ws.tanyunshou.task.IncreaseAmountTask;
 import org.ws.tanyunshou.task.UpdateAmountTask;
 import org.ws.tanyunshou.util.CommonTools;
@@ -16,7 +15,6 @@ import org.ws.tanyunshou.vo.Amount;
 
 import java.math.BigDecimal;
 import java.util.concurrent.*;
-import java.util.function.Supplier;
 
 /**
  * @author yinan
@@ -67,7 +65,7 @@ public class RabbitConsumer {
         logger.info("get serial no: {}, queue name: {}, current thread: {}", serialNo,
                 RabbitConstant.SERIAL_NO_QUEUE, Thread.currentThread().getName());
         CompletableFuture
-                .supplyAsync(() -> amountService.findAmountBySerialNo(serialNo))
+                .supplyAsync(() -> amountService.findAmountBySerialNo(serialNo), getPoolExec)
                 .thenAccept(amount -> {
                     HttpRequestMap.put(serialNo, amount);
                 });

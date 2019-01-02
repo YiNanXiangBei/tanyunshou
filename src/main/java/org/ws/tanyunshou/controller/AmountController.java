@@ -8,16 +8,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.ws.tanyunshou.mq.RabbitProducer;
 import org.ws.tanyunshou.service.IAmountService;
-import org.ws.tanyunshou.task.GetAmountTask;
-import org.ws.tanyunshou.task.IncreaseAmountTask;
-import org.ws.tanyunshou.task.UpdateAmountTask;
-import org.ws.tanyunshou.util.CommonTools;
 import org.ws.tanyunshou.util.HttpRequestMap;
 import org.ws.tanyunshou.vo.Amount;
 
-import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
-import java.util.concurrent.*;
 
 /**
  * @author yinan
