@@ -31,8 +31,7 @@ public class AmountController {
 
     private ThreadPoolExecutor incPoolExec = new ThreadPoolExecutor(10, 15,
             1, TimeUnit.SECONDS,
-            new ArrayBlockingQueue<>(50, true), r -> new Thread(r, "inc_amount_pool_" + r.hashCode()),
-            new ThreadPoolExecutor.CallerRunsPolicy());
+            new LinkedBlockingDeque<>(), r -> new Thread(r, "inc_amount_pool_" + r.hashCode()));
 
     private ThreadPoolExecutor updatePoolExec = new ThreadPoolExecutor(10, 15,
             10, TimeUnit.SECONDS, new LinkedBlockingDeque<>(100), r -> new Thread(r, "update_amount_pool_" + r.hashCode()));
