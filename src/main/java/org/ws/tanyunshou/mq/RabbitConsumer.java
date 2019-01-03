@@ -37,7 +37,7 @@ public class RabbitConsumer {
             r -> new Thread(r, "update_amount_pool_" + r.hashCode()),
             new ThreadPoolExecutor.CallerRunsPolicy());
 
-    private ThreadPoolExecutor getPoolExec = new ThreadPoolExecutor(20, 30, 10,
+    private ThreadPoolExecutor getPoolExec = new ThreadPoolExecutor(8, 10, 10,
             TimeUnit.SECONDS, new LinkedBlockingQueue<>(50),
             r -> new Thread(r, "get_amount_pool_" + r.hashCode()),
             new ThreadPoolExecutor.CallerRunsPolicy());
@@ -62,12 +62,19 @@ public class RabbitConsumer {
     @RabbitListener(queues = RabbitConstant.SERIAL_NO_QUEUE, containerFactory = "multiListenerContainer")
     @RabbitHandler
     public void processSerialNo(String serialNo) {
-        logger.info("get serial no: {}, queue name: {}, current thread: {}", serialNo,
-                RabbitConstant.SERIAL_NO_QUEUE, Thread.currentThread().getName());
         CompletableFuture
-                .supplyAsync(() -> amountService.findAmountBySerialNo(serialNo), getPoolExec)
-                .thenAccept(amount -> HttpRequestMap.put(serialNo, amount));
+                .supplyAsync(() -> {
+                    logger.info("get serial no: {}, queue name: {}, current thread: {}", serialNo,
+                            RabbitConstant.SERIAL_NO_QUEUE, Thread.currentThread().getName());
+                    return amountService.findAmountBySerialNo(serialNo); }
+                    , getPoolExec)
+                .thenAccept(amount -> {
+                    logger.info("************** {}, {}", amount, HttpRequestMap.size());
+                    try {
+                        HttpRequestMap.put(serialNo, amount);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                });
     }
-
-
 }
