@@ -69,11 +69,10 @@ public class RabbitConsumer {
                     return amountService.findAmountBySerialNo(serialNo); }
                     , getPoolExec)
                 .thenAccept(amount -> {
-                    logger.info("************** {}, {}", amount, HttpRequestMap.size());
                     try {
                         HttpRequestMap.put(serialNo, amount);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        logger.error("HttpRequestMap put val error: {}", e.toString());
                     }
                 });
     }

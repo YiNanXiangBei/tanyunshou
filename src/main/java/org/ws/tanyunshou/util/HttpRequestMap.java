@@ -1,10 +1,11 @@
 package org.ws.tanyunshou.util;
 
-import org.thavam.util.concurrent.blockingMap.BlockingHashMap;
-import org.thavam.util.concurrent.blockingMap.BlockingMap;
 import org.ws.tanyunshou.vo.Amount;
 
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author yinan
@@ -12,10 +13,27 @@ import java.util.concurrent.TimeUnit;
  */
 public class HttpRequestMap {
 
-    private static BlockingMap<String, Amount> blockingMap = new BlockingHashMap<>();
+    private static ConcurrentHashMap<String, Amount> hashMap = new ConcurrentHashMap<>();
+
+    private static final Lock LOCK = new ReentrantLock();
+
+    private static final Condition PUT_CONDITION = LOCK.newCondition();
+
+    private static final Condition TAKE_CONDITION = LOCK.newCondition();
+
+    private static final int MAX_SIZE = 10000;
 
     public static void put(String serialNo, Amount amount) throws InterruptedException {
-        blockingMap.offer(serialNo, amount, 10, TimeUnit.SECONDS);
+        try {
+            LOCK.lock();
+            while (hashMap.size() == MAX_SIZE) {
+                PUT_CONDITION.await();
+            }
+            hashMap.put(serialNo, amount);
+            TAKE_CONDITION.signal();
+        } finally {
+            LOCK.unlock();
+        }
     }
 
     /**
@@ -27,11 +45,21 @@ public class HttpRequestMap {
      * @throws InterruptedException
      */
     public static Amount take(String serialNo) throws InterruptedException {
-        return blockingMap.take(serialNo, 5, TimeUnit.SECONDS);
+        try {
+            LOCK.lock();
+            while (hashMap.isEmpty() || !hashMap.containsKey(serialNo)) {
+                TAKE_CONDITION.await();
+            }
+            Amount amount = hashMap.get(serialNo);
+            PUT_CONDITION.signal();
+            return amount;
+        } finally {
+            LOCK.unlock();
+        }
     }
 
     public static int size() {
-        return blockingMap.size();
+        return hashMap.size();
     }
 
 }

@@ -67,12 +67,6 @@
             <artifactId>aspectjweaver</artifactId>
             <version>1.8.13</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.github.sarveswaran-m/util.concurrent.blockingMap -->
-        <dependency>
-            <groupId>com.github.sarveswaran-m</groupId>
-            <artifactId>util.concurrent.blockingMap</artifactId>
-            <version>0.91</version>
-        </dependency>
 
     </dependencies>
 

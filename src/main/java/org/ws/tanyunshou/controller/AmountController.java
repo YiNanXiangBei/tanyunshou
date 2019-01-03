@@ -41,7 +41,6 @@ public class AmountController {
 
     @GetMapping(value = "/get")
     public Amount findAmount(String serialNo) {
-        logger.info("=============== {}", Thread.currentThread().getName());
         producer.sendSerialNo(serialNo);
         try {
             return HttpRequestMap.take(serialNo);
