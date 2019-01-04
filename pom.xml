@@ -67,7 +67,11 @@
             <artifactId>aspectjweaver</artifactId>
             <version>1.8.13</version>
         </dependency>
-
+        <!--动态切换日志插件-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -87,7 +91,7 @@
                     </from>
                     <to>
                         <!--目标镜像registry地址，为了方便测试，你需要换成自己的地址，如果你的网络不好，可以选用国内加速器，比如阿里云的-->
-                        <image>registry.cn-hangzhou.aliyuncs.com/winson/tanyunshou</image>
+                        <image>registry.cn-hangzhou.aliyuncs.com/winson/tanyunshou1</image>
                     </to>
                 </configuration>
                 <executions>
