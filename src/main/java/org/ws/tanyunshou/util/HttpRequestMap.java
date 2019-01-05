@@ -51,6 +51,7 @@ public class HttpRequestMap {
                 TAKE_CONDITION.await();
             }
             Amount amount = hashMap.get(serialNo);
+            hashMap.remove(serialNo);
             PUT_CONDITION.signal();
             return amount;
         } finally {

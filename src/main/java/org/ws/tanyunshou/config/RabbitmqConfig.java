@@ -56,6 +56,7 @@ public class RabbitmqConfig {
     @Bean(name = "multiListenerContainer")
     public SimpleRabbitListenerContainerFactory multiListenerContainer() {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+        connectionFactory.setConnectionTimeout(30000);
         factoryConfigurer.configure(factory, connectionFactory);
         factory.setMessageConverter(new Jackson2JsonMessageConverter());
         factory.setAcknowledgeMode(AcknowledgeMode.NONE);
@@ -76,8 +77,6 @@ public class RabbitmqConfig {
         rabbitTemplate.setReturnCallback((message, i, s, s1, s2) -> log.debug("消息丢失：exchange({}), route({}), replyCode({}), replyText({}), message:{}", s1, s2, i, s, message));
         return rabbitTemplate;
     }
-
-
 
 
 

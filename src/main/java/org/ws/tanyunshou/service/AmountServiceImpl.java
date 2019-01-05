@@ -11,9 +11,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.ws.tanyunshou.config.DataSourceNames;
 import org.ws.tanyunshou.config.TargetDataSource;
 import org.ws.tanyunshou.dao.IAmountDao;
+import org.ws.tanyunshou.exception.InsufficientAmountException;
 import org.ws.tanyunshou.redis.RedisConstant;
+import org.ws.tanyunshou.util.CommonConstant;
 import org.ws.tanyunshou.vo.Amount;
 
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -76,11 +79,16 @@ public class AmountServiceImpl implements IAmountService{
     @CachePut(key = "#amount.serialNo")
     @TargetDataSource
     @Override
-    public Amount updateAmount(Amount amount) {
+    public Amount updateAmount(Amount amount) throws InsufficientAmountException {
         try {
             readWriteLock.writeLock().lock();
             Amount oldAmount = amountDao.findAmountBySerialNo(amount.getSerialNo());
-            amount.setMoney(amount.getMoney().add(oldAmount.getMoney()));
+            BigDecimal money = amount.getMoney().add(oldAmount.getMoney());
+            if (money.compareTo(BigDecimal.ZERO) < 0) {
+                throw new InsufficientAmountException(CommonConstant.INSUFFICIENT_AMOUNT);
+            }
+            amount.setMoney(money);
+            amount.setThreadName(Thread.currentThread().getName());
             logger.info("updateAmount, amount: {}, thread name: {}", amount.toString(), Thread.currentThread().getName());
             reallyUpdateAmount(amount);
         } finally {

@@ -6,9 +6,10 @@ import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.ws.tanyunshou.exception.InsufficientAmountException;
 import org.ws.tanyunshou.service.IAmountService;
 import org.ws.tanyunshou.task.IncreaseAmountTask;
-import org.ws.tanyunshou.task.UpdateAmountTask;
+import org.ws.tanyunshou.util.CommonConstant;
 import org.ws.tanyunshou.util.CommonTools;
 import org.ws.tanyunshou.util.HttpRequestMap;
 import org.ws.tanyunshou.vo.Amount;
@@ -45,9 +46,30 @@ public class RabbitConsumer {
     @RabbitListener(queues = RabbitConstant.AMOUNT_QUEUE, containerFactory = "multiListenerContainer")
     @RabbitHandler
     public void process(Amount amount) {
-        logger.info("get amount: {}, queue name: {}, current thread: {}", amount.toString(),
-                RabbitConstant.AMOUNT_QUEUE, Thread.currentThread().getName());
-        updatePoolExec.execute(new UpdateAmountTask(amountService, amount));
+
+        CompletableFuture
+                .supplyAsync(() -> {
+                    logger.info("update amount: {}, queue name: {}, current thread: {}", amount.toString(),
+                            RabbitConstant.AMOUNT_QUEUE, Thread.currentThread().getName());
+                    try {
+                        return amountService.updateAmount(amount);
+                    } catch (InsufficientAmountException e) {
+                        logger.error("can not update amount, because {}", e.toString());
+                    }
+                    return null;
+                }, updatePoolExec)
+                .thenAccept(amount1 -> {
+                    try {
+                        if (amount1 == null) {
+                            HttpRequestMap.put("#" + amount.getSerialNo(), CommonConstant.AMOUNT);
+                        } else {
+                            HttpRequestMap.put("#" + amount.getSerialNo(), amount1);
+                        }
+                    } catch (InterruptedException e) {
+                        logger.error("HttpRequestMap put val error: {}", e.toString());
+                    }
+                });
+
     }
 
 

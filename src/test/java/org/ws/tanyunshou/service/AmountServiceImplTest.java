@@ -62,41 +62,7 @@ public class AmountServiceImplTest {
 
     }
 
-    @Rollback
-    @Test
-    public void updateAmount() {
-        Amount amount = new Amount("weea1313ee12", new BigDecimal(101), Thread.currentThread().getName());
-        amountService.updateAmount(amount);
-    }
 
-    @Test
-    public void testAmount() throws InterruptedException {
-        ThreadPoolExecutor poolExecutor = new ThreadPoolExecutor(10, 10,
-                5, TimeUnit.SECONDS, new SynchronousQueue<>(),
-                r -> new Thread(r, "amount_pool_" + r.hashCode()));
-        UpdateTaskTest task1 = new UpdateTaskTest(amountService, new BigDecimal(10), "weea1313ee12");
-        UpdateTaskTest task2 = new UpdateTaskTest(amountService, new BigDecimal(-1), "weea1313ee12");
-        UpdateTaskTest task3 = new UpdateTaskTest(amountService, new BigDecimal(5), "weea1313ee12");
-        UpdateTaskTest task4 = new UpdateTaskTest(amountService, new BigDecimal(-6), "weea1313ee12");
-        UpdateTaskTest task5 = new UpdateTaskTest(amountService, new BigDecimal(4), "weea1313ee12");
-        UpdateTaskTest task6 = new UpdateTaskTest(amountService, new BigDecimal(-2), "weea1313ee12");
-        UpdateTaskTest task7 = new UpdateTaskTest(amountService, new BigDecimal(8), "weea1313ee12");
-        UpdateTaskTest task8 = new UpdateTaskTest(amountService, new BigDecimal(1), "weea1313ee12");
-        UpdateTaskTest task9 = new UpdateTaskTest(amountService, new BigDecimal(-10), "weea1313ee12");
-        UpdateTaskTest task10 = new UpdateTaskTest(amountService, new BigDecimal(5), "weea1313ee12");
-        poolExecutor.execute(task1);
-        poolExecutor.execute(task2);
-        poolExecutor.execute(task3);
-        poolExecutor.execute(task4);
-        poolExecutor.execute(task5);
-        poolExecutor.execute(task6);
-        poolExecutor.execute(task7);
-        poolExecutor.execute(task8);
-        poolExecutor.execute(task9);
-        poolExecutor.execute(task10);
-        TimeUnit.SECONDS.sleep(60);
-
-    }
 
 
 }

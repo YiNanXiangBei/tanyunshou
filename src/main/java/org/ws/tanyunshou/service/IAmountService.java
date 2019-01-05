@@ -1,5 +1,6 @@
 package org.ws.tanyunshou.service;
 
+import org.ws.tanyunshou.exception.InsufficientAmountException;
 import org.ws.tanyunshou.vo.Amount;
 import java.util.List;
 
@@ -15,6 +16,6 @@ public interface IAmountService {
 
     Amount insertAmount(Amount amount);
 
-    Amount  updateAmount(Amount amount);
+    Amount  updateAmount(Amount amount) throws InsufficientAmountException;
 
 }

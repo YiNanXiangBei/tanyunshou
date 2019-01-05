@@ -6,8 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.ws.tanyunshou.message.ResponseMessage;
 import org.ws.tanyunshou.mq.RabbitProducer;
 import org.ws.tanyunshou.service.IAmountService;
+import org.ws.tanyunshou.util.CommonConstant;
 import org.ws.tanyunshou.util.HttpRequestMap;
 import org.ws.tanyunshou.vo.Amount;
 
@@ -35,19 +37,43 @@ public class AmountController {
     }
 
     @PostMapping(value = "/update")
-    public void updateAmount(Amount amount) {
+    public ResponseMessage updateAmount(Amount amount) {
         producer.sendMessage(amount);
+        ResponseMessage message = new ResponseMessage(CommonConstant.INTERNAL_SERVER_ERROR,
+                null, CommonConstant.SERVICE_UNAVAILABLE_MESSAGE);
+        try {
+            Amount newAmount = HttpRequestMap.take("#" + amount.getSerialNo());
+            message.setData(newAmount);
+            if (newAmount == CommonConstant.AMOUNT) {
+                message.setCode(CommonConstant.SUCCESS_RESPONSE);
+                message.setMessage(CommonConstant.INSUFFICIENT_AMOUNT);
+            } else {
+                message.setCode(CommonConstant.SUCCESS_RESPONSE);
+                message.setMessage(CommonConstant.SUCCESS_REQUEST_MESSAGE);
+            }
+            return message;
+        } catch (InterruptedException e) {
+            logger.error("can not get new amount, serial no: {}", amount.getSerialNo());
+        }
+
+        return message;
     }
 
     @GetMapping(value = "/get")
-    public Amount findAmount(String serialNo) {
+    public ResponseMessage findAmount(String serialNo) {
         producer.sendSerialNo(serialNo);
+        ResponseMessage message = new ResponseMessage(CommonConstant.INTERNAL_SERVER_ERROR,
+                null, CommonConstant.SERVICE_UNAVAILABLE_MESSAGE);
         try {
-            return HttpRequestMap.take(serialNo);
+            Amount amount = HttpRequestMap.take(serialNo);
+            message.setCode(CommonConstant.SUCCESS_RESPONSE);
+            message.setData(amount);
+            message.setMessage(CommonConstant.SUCCESS_REQUEST_MESSAGE);
+            return message;
         } catch (InterruptedException e) {
             logger.error("can not get amount, serial no: {}", serialNo);
         }
-        return null;
+        return message;
     }
 
 }
