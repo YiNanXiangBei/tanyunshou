@@ -30,7 +30,7 @@ public class HttpRequestMap {
                 PUT_CONDITION.await();
             }
             hashMap.put(serialNo, amount);
-            TAKE_CONDITION.signal();
+            TAKE_CONDITION.signalAll();
         } finally {
             LOCK.unlock();
         }
@@ -52,7 +52,7 @@ public class HttpRequestMap {
             }
             Amount amount = hashMap.get(serialNo);
             hashMap.remove(serialNo);
-            PUT_CONDITION.signal();
+            PUT_CONDITION.signalAll();
             return amount;
         } finally {
             LOCK.unlock();

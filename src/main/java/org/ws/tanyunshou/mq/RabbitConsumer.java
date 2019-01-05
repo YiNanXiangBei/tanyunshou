@@ -49,8 +49,8 @@ public class RabbitConsumer {
 
         CompletableFuture
                 .supplyAsync(() -> {
-                    logger.info("update amount: {}, queue name: {}, current thread: {}", amount.toString(),
-                            RabbitConstant.AMOUNT_QUEUE, Thread.currentThread().getName());
+                    logger.info("update amount: {}, queue name: {}, current thread: {}, queue size: {}", amount.toString(),
+                            RabbitConstant.AMOUNT_QUEUE, Thread.currentThread().getName(), HttpRequestMap.size());
                     try {
                         return amountService.updateAmount(amount);
                     } catch (InsufficientAmountException e) {
@@ -86,8 +86,8 @@ public class RabbitConsumer {
     public void processSerialNo(String serialNo) {
         CompletableFuture
                 .supplyAsync(() -> {
-                    logger.info("get serial no: {}, queue name: {}, current thread: {}", serialNo,
-                            RabbitConstant.SERIAL_NO_QUEUE, Thread.currentThread().getName());
+                    logger.info("get serial no: {}, queue name: {}, current thread: {}, queue size: {}", serialNo,
+                            RabbitConstant.SERIAL_NO_QUEUE, Thread.currentThread().getName(), HttpRequestMap.size());
                     return amountService.findAmountBySerialNo(serialNo); }
                     , getPoolExec)
                 .thenAccept(amount -> {
