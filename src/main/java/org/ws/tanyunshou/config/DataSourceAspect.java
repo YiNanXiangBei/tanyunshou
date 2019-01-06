@@ -23,7 +23,7 @@ import java.lang.reflect.Method;
 @Order(0)
 public class DataSourceAspect {
 
-    protected Logger logger = LoggerFactory.getLogger(getClass());
+    private Logger logger = LoggerFactory.getLogger(getClass());
 
     @Pointcut("@annotation(org.ws.tanyunshou.config.TargetDataSource)")
     public void dataSourcePoint() {

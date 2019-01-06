@@ -1,6 +1,7 @@
 package org.ws.tanyunshou.config;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
@@ -13,7 +14,9 @@ import org.springframework.data.redis.cache.RedisCacheWriter;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.*;
+import org.ws.tanyunshou.redis.IDistributedLock;
 import org.ws.tanyunshou.redis.RedisConstant;
+import org.ws.tanyunshou.redis.RedisDistributeLock;
 
 import java.time.Duration;
 
@@ -26,8 +29,8 @@ import java.time.Duration;
 @EnableCaching
 public class RedisConfig extends CachingConfigurerSupport {
     @Bean
-    public RedisTemplate<String, Object> redisTemplate(LettuceConnectionFactory lettuceConnectionFactory) {
-        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+    public RedisTemplate<Object, Object> redisTemplate(LettuceConnectionFactory lettuceConnectionFactory) {
+        RedisTemplate<Object, Object> redisTemplate = new RedisTemplate<>();
         this.initRedisTemplate(redisTemplate, lettuceConnectionFactory);
         redisTemplate.afterPropertiesSet();
         return redisTemplate;
@@ -53,13 +56,19 @@ public class RedisConfig extends CachingConfigurerSupport {
 
     }
 
-    private void initRedisTemplate(RedisTemplate<String, Object> redisTemplate, LettuceConnectionFactory factory) {
+    private void initRedisTemplate(RedisTemplate<Object, Object> redisTemplate, LettuceConnectionFactory factory) {
         redisTemplate.setKeySerializer(new StringRedisSerializer());
         redisTemplate.setHashKeySerializer(new StringRedisSerializer());
         //这里的序列化工具在直接调用redistemplate时才会使用
         redisTemplate.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
         redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         redisTemplate.setConnectionFactory(factory);
+    }
+
+    @Bean
+    @ConditionalOnBean(RedisTemplate.class)
+    public IDistributedLock redisDistributeLock() {
+        return new RedisDistributeLock();
     }
 
 }

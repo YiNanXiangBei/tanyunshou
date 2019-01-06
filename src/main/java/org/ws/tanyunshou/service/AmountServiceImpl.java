@@ -12,6 +12,7 @@ import org.ws.tanyunshou.config.DataSourceNames;
 import org.ws.tanyunshou.config.TargetDataSource;
 import org.ws.tanyunshou.dao.IAmountDao;
 import org.ws.tanyunshou.exception.InsufficientAmountException;
+import org.ws.tanyunshou.redis.DistributeLock;
 import org.ws.tanyunshou.redis.RedisConstant;
 import org.ws.tanyunshou.util.CommonConstant;
 import org.ws.tanyunshou.vo.Amount;
@@ -76,6 +77,7 @@ public class AmountServiceImpl implements IAmountService{
      * @param amount
      * @return
      */
+    @DistributeLock(name = "AmountService_distributeLock", value = "#amount.serialNo")
     @CachePut(key = "#amount.serialNo")
     @TargetDataSource
     @Override
