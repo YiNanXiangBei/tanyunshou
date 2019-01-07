@@ -62,9 +62,9 @@ public class RabbitProducerTest {
         RedisClient client = RedisClient.create(RedisURI.create("redis://root1234@127.0.0.1:6379"));
         StatefulRedisConnection<String, String> connection = client.connect();
         RedisAsyncCommands<String, String> async = connection.async();
-        String[] strings = {"1111"};
-        String value = "111";
-        RedisFuture<Long> eval = async.eval(LUA_SCRIPT, ScriptOutputType.INTEGER, "1111", value);
+        String[] strings = {"AmountService_distributeLock_78155fa7a2084541b0a14affd2680434"};
+        String value = "01d7d624d7e64e4e87939af9e08229b6";
+        RedisFuture<Long> eval = async.eval(LUA_SCRIPT, ScriptOutputType.INTEGER, strings, value);
         Long aLong = eval.get();
         System.out.println("解锁结果-result: " + aLong);
     }

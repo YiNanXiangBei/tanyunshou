@@ -3,6 +3,7 @@ package org.ws.tanyunshou.util;
 import org.ws.tanyunshou.vo.Amount;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -47,8 +48,15 @@ public class HttpRequestMap {
     public static Amount take(String serialNo) throws InterruptedException {
         try {
             LOCK.lock();
-            while (hashMap.isEmpty() || !hashMap.containsKey(serialNo)) {
+            while (hashMap.isEmpty()) {
                 TAKE_CONDITION.await();
+            }
+            int times = 0;
+            while (!hashMap.containsKey(serialNo)) {
+                TAKE_CONDITION.await(2, TimeUnit.SECONDS);
+                times ++;
+                if (times == 3)
+                    return null;
             }
             Amount amount = hashMap.get(serialNo);
             hashMap.remove(serialNo);

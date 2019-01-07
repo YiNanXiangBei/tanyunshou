@@ -37,6 +37,7 @@ public class DistributedLockAspect {
     private ExpressionParser parser = new SpelExpressionParser();
 
     private LocalVariableTableParameterNameDiscoverer discoverer = new LocalVariableTableParameterNameDiscoverer();
+    private String s;
 
     @Pointcut("@annotation(org.ws.tanyunshou.redis.DistributeLock)")
     private void lockPoint() {
@@ -53,7 +54,7 @@ public class DistributedLockAspect {
         int retryTimes = lockAction.action().equals(DistributeLock.LockFailAction.CONTINUE) ? lockAction.retryTimes() : 0;
         boolean isLock = distributedLock.lock(logKey, lockAction.keepMills(), retryTimes, lockAction.sleepMills());
         if (!isLock) {
-            logger.debug("get lock failed : {}", logKey);
+            logger.info("get lock failed : {}", logKey);
             return null;
         }
 
@@ -67,7 +68,7 @@ public class DistributedLockAspect {
         } finally {
             //释放锁
             boolean releaseResult = distributedLock.releaseLock(logKey);
-            logger.debug("release lock : {}", logKey + (releaseResult ? " success": " failed"));
+            logger.info("release lock : {}", logKey + (releaseResult ? " success": " failed"));
         }
 
         return null;
@@ -84,11 +85,10 @@ public class DistributedLockAspect {
         //注解上的name和value属性
         String name = lockAction.name();
         String value = lockAction.value();
-        logger.debug("name is : {} , value is : {}", name, value);
+        logger.info("name is : {} , value is : {}", name, value);
         //获取到的请求方法参数值，即获取到了注解的参数的值
         //如 Amount{id=0, serialNo='bfefcbfb59d048a9934d31c9b33126a6', money=10, threadName='null'}
         Object[] args = point.getArgs();
-        logger.debug("get args: {}", args);
         //这里整合之后返回的就是注解的name加上解析之后的value值
         return parse(name, method, args) + "_" + parse(value, method, args);
     }
@@ -105,7 +105,6 @@ public class DistributedLockAspect {
         //获取参数名称
         //如 amount
         String[] params = discoverer.getParameterNames(method);
-        logger.debug("get params : {}", params);
         if (null == params || params.length == 0 || !key.contains("#")) {
             return key;
         }

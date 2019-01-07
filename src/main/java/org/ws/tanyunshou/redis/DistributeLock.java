@@ -56,7 +56,7 @@ public @interface DistributeLock {
      * 重试的时间间隔，设置GIVEUP忽略此项
      * @return
      */
-    long sleepMills() default 200;
+    long sleepMills() default 2000;
 
     /**
      * 重试次数

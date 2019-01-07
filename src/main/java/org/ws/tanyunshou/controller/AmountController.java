@@ -47,7 +47,7 @@ public class AmountController {
             if (newAmount == CommonConstant.AMOUNT) {
                 message.setCode(CommonConstant.SUCCESS_RESPONSE);
                 message.setMessage(CommonConstant.INSUFFICIENT_AMOUNT);
-            } else {
+            } else if (newAmount != null){
                 message.setCode(CommonConstant.SUCCESS_RESPONSE);
                 message.setMessage(CommonConstant.SUCCESS_REQUEST_MESSAGE);
             }
