@@ -77,7 +77,7 @@ public class AmountServiceImpl implements IAmountService{
      * @param amount
      * @return
      */
-    @DistributeLock(name = "AmountService_distributeLock", value = "#amount.serialNo")
+    @DistributeLock(name = "AmountService_distributeLock", value = "#amount.serialNo", keepMills = 60000)
     @CachePut(key = "#amount.serialNo")
     @TargetDataSource
     @Override

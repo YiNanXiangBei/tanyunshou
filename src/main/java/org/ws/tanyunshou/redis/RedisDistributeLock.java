@@ -3,7 +3,10 @@ package org.ws.tanyunshou.redis;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.lettuce.core.RedisFuture;
+import io.lettuce.core.ScriptOutputType;
 import io.lettuce.core.SetArgs;
+import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.cluster.api.async.RedisAdvancedClusterAsyncCommands;
 import org.slf4j.Logger;
@@ -21,6 +24,8 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisCommands;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -39,10 +44,6 @@ public class RedisDistributeLock extends AbstractDistributeLockImpl {
 
     private static final String UNLOCK_LUA = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
 
-    private static final String SET_IF_NOT_EXIST = "NX";
-
-    private static final String SET_WITH_EXPIRE_TIME = "PX";
-
     public RedisDistributeLock() {
         super();
     }
@@ -50,10 +51,10 @@ public class RedisDistributeLock extends AbstractDistributeLockImpl {
     @Override
     public boolean lock(String key, long expire, int retryTimes, long sleepMills) {
         boolean result = setRedis(key, expire);
-        while (!result && retryTimes-- > 0) {
+        while (!result && (retryTimes --) > 0) {
 
             try {
-                logger.debug("lock failed, retrying ... {}" + retryTimes);
+                logger.debug("lock failed, retrying ... {}", retryTimes);
                 TimeUnit.SECONDS.sleep(sleepMills);
             } catch (InterruptedException e) {
                 logger.error("locked error, because: {}", e.toString());
@@ -84,28 +85,32 @@ public class RedisDistributeLock extends AbstractDistributeLockImpl {
     public boolean releaseLock(String key) {
         // 释放锁的时候，有可能因为持锁之后方法执行时间大于锁的有效期，此时有可能已经被另外一个线程持有锁，所以不能直接删除
         try {
-            List<String> keys = new ArrayList<>();
-            keys.add(key);
-            List<String> args = new ArrayList<>();
-            args.add(lockFlag.get());
-
+//            List<String> keys = new ArrayList<>();
+//            keys.add(key);
+//            List<String> args = new ArrayList<>();
+//            args.add(lockFlag.get());
+//            String[] keys = {key};
+//            String value = lockFlag.get();
             //使用lua脚本删除redis中匹配的value的key 可以避免由于执行过长时间而导致redis锁自动过期的时候误删其它线程的锁
             //spring自带的执行脚本方法中，集群模式直接抛出不支持执行脚本的异常，所以只能拿到原redis的connection来执行脚本
             Long result = redisTemplate.execute((RedisCallback<Long>) redisConnection -> {
                 Object nativeConnection = redisConnection.getNativeConnection();
                 //集群模式和单机模式虽然执行脚本相同，但是由于没有共同接口，所以只能分开执行
                 //集群模式
-
-
-                if (nativeConnection instanceof JedisCluster) {
-                    return (Long) ((JedisCluster) nativeConnection).eval(UNLOCK_LUA, keys, args);
-                } else if (nativeConnection instanceof Jedis) {
-                    //单机模式
-                    return (Long)((Jedis) nativeConnection).eval(UNLOCK_LUA, keys, args);
+                RedisAsyncCommands<byte[], byte[]> asyncCommands = (RedisAsyncCommands<byte[], byte[]>) nativeConnection;
+                RedisSerializer<String> objectRedisSerializer = (RedisSerializer<String>) redisTemplate.getKeySerializer();
+                byte[] keys = objectRedisSerializer.serialize(key);
+                byte[] values = objectRedisSerializer.serialize(lockFlag.get());
+//                StatefulRedisConnection connection = asyncCommands.getStatefulConnection();
+                RedisFuture<Long> future = asyncCommands.eval(UNLOCK_LUA, ScriptOutputType.INTEGER,  keys, values);
+                try {
+                    return future.get();
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
                 }
                 return 0L;
             });
-
+            logger.debug("release lock val : {}", result);
             return result != null && result > 0;
         } catch (Exception e) {
             logger.error("release locked error, occured an exception {}", e);
@@ -123,12 +128,17 @@ public class RedisDistributeLock extends AbstractDistributeLockImpl {
                 RedisSerializer<String> objectRedisSerializer = (RedisSerializer<String>) redisTemplate.getKeySerializer();
                 byte[] keyByte = objectRedisSerializer.serialize(key);
                 String uuid = CommonTools.getUUID();
+                logger.debug("uuid is : {}", uuid);
                 byte[] valueByte = objectRedisSerializer.serialize(uuid);
                 lockFlag.set(uuid);
-                RedisAsyncCommands asyncCommands = (RedisAsyncCommands) nativeConnection;
-                return asyncCommands.getStatefulConnection()
-                        .sync()
-                        .set(keyByte, valueByte, SetArgs.Builder.nx().px(expire));
+                RedisAsyncCommands<byte[], byte[]> asyncCommands = (RedisAsyncCommands<byte[], byte[]>) nativeConnection;
+                Future<String> future =  asyncCommands.set(keyByte, valueByte, SetArgs.Builder.nx().px(expire));
+                try {
+                    return future.get();
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                }
+                return null;
             });
             return "OK".equalsIgnoreCase(result);
         } catch (Exception e) {

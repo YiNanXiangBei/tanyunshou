@@ -1,6 +1,10 @@
 package org.ws.tanyunshou.mq;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.lettuce.core.*;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.async.RedisAsyncCommands;
+import io.lettuce.core.api.sync.RedisCommands;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +27,8 @@ public class RabbitProducerTest {
     @Autowired
     private RabbitProducer producer;
 
+    private static final String LUA_SCRIPT = "if redis.call('get',KEYS[1]) == ARGV[1] then return redis.call('del',KEYS[1]) else return 0 end";
+
     @Test
     public void sendMessage() throws JsonProcessingException {
         Amount amount = new Amount("12ewe11", new BigDecimal(212), Thread.currentThread().getName());
@@ -39,5 +45,27 @@ public class RabbitProducerTest {
     @Test
     public void sendSerialNo() {
         producer.sendSerialNo("e2da82c24e254bbaa324e4cb662f2ee6");
+    }
+
+    @Test
+    public void save() {
+        RedisClient client = RedisClient.create(RedisURI.create("redis://root1234@127.0.0.1:6379"));
+        StatefulRedisConnection<String, String> connection = client.connect();
+        RedisCommands<String, String> commands = connection.sync();
+        SetArgs px = SetArgs.Builder.nx().px(500000);
+        String result =  commands.set("1111", "111", px);
+        System.out.println(result);
+    }
+
+    @Test
+    public void del() throws Exception{
+        RedisClient client = RedisClient.create(RedisURI.create("redis://root1234@127.0.0.1:6379"));
+        StatefulRedisConnection<String, String> connection = client.connect();
+        RedisAsyncCommands<String, String> async = connection.async();
+        String[] strings = {"1111"};
+        String value = "111";
+        RedisFuture<Long> eval = async.eval(LUA_SCRIPT, ScriptOutputType.INTEGER, "1111", value);
+        Long aLong = eval.get();
+        System.out.println("解锁结果-result: " + aLong);
     }
 }
