@@ -37,7 +37,6 @@ public class DistributedLockAspect {
     private ExpressionParser parser = new SpelExpressionParser();
 
     private LocalVariableTableParameterNameDiscoverer discoverer = new LocalVariableTableParameterNameDiscoverer();
-    private String s;
 
     @Pointcut("@annotation(org.ws.tanyunshou.redis.DistributeLock)")
     private void lockPoint() {
@@ -45,7 +44,7 @@ public class DistributedLockAspect {
     }
 
     @Around("lockPoint()")
-    public Object around(ProceedingJoinPoint point) throws Throwable {
+    public Object around(ProceedingJoinPoint point){
         Method method = ((MethodSignature) point.getSignature()).getMethod();
         //获取注解
         DistributeLock lockAction = method.getAnnotation(DistributeLock.class);
@@ -59,12 +58,11 @@ public class DistributedLockAspect {
         }
 
         //得到锁，执行方法释放锁
-        logger.debug("get lock success : {}", logKey);
         try {
             //执行方法
             return point.proceed();
-        } catch (Exception e) {
-            logger.error("execute locked method occured an exception {}", e);
+        } catch (Throwable throwable) {
+            logger.error("execute locked method occured an exception {}", throwable);
         } finally {
             //释放锁
             boolean releaseResult = distributedLock.releaseLock(logKey);

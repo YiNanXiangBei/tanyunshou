@@ -56,4 +56,9 @@ public class CommonConstant {
     public static final Amount AMOUNT = new Amount("error",
                                     new BigDecimal(-1), Thread.currentThread().getName());
 
+    /**
+     * ok
+     */
+    public static final String OK = "OK";
+
 }

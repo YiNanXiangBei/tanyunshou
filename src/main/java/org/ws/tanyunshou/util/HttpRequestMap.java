@@ -1,5 +1,7 @@
 package org.ws.tanyunshou.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.ws.tanyunshou.vo.Amount;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,15 +26,19 @@ public class HttpRequestMap {
 
     private static final int MAX_SIZE = 10000;
 
+    private static Logger logger = LoggerFactory.getLogger(HttpRequestMap.class);
+
     public static void put(String serialNo, Amount amount) throws InterruptedException {
         try {
             LOCK.lock();
+            logger.debug("[put] begin to get lock ...");
             while (hashMap.size() == MAX_SIZE) {
                 PUT_CONDITION.await();
             }
             hashMap.put(serialNo, amount);
             TAKE_CONDITION.signalAll();
         } finally {
+            logger.debug("[put] thread has unlocked ...");
             LOCK.unlock();
         }
     }
@@ -48,13 +54,16 @@ public class HttpRequestMap {
     public static Amount take(String serialNo) throws InterruptedException {
         try {
             LOCK.lock();
+            logger.debug("[take] begin to get lock ...");
             while (hashMap.isEmpty()) {
                 TAKE_CONDITION.await();
             }
             int times = 0;
             while (!hashMap.containsKey(serialNo)) {
-                TAKE_CONDITION.await(2, TimeUnit.SECONDS);
+//                TAKE_CONDITION.await(2, TimeUnit.SECONDS);
+                TimeUnit.MILLISECONDS.sleep(2000);
                 times ++;
+                logger.debug("times now is : {}", times);
                 if (times == 3)
                     return null;
             }
@@ -63,6 +72,7 @@ public class HttpRequestMap {
             PUT_CONDITION.signalAll();
             return amount;
         } finally {
+            logger.debug("[take] thread has unlocked ... ");
             LOCK.unlock();
         }
     }

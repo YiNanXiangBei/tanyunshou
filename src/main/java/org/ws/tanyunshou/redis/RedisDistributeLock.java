@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
+import org.ws.tanyunshou.util.CommonConstant;
 import org.ws.tanyunshou.util.CommonTools;
 import java.util.concurrent.TimeUnit;
 
@@ -81,8 +82,6 @@ public class RedisDistributeLock extends AbstractDistributeLockImpl {
                     redisTemplate.getStringSerializer(),
                     Collections.singletonList(key),
                     lockFlag.get());
-
-            logger.info("release lock val : {}", releaseResult);
             return null != releaseResult && releaseResult.equals("1");
         } catch (Exception e) {
             logger.error("release locked error, occured an exception {}", e);
@@ -102,10 +101,9 @@ public class RedisDistributeLock extends AbstractDistributeLockImpl {
                     redisTemplate.getStringSerializer(),
                     Collections.singletonList(key),
                     uuid, String.valueOf(expire));
-            logger.info("lock is : {}",lockResult);
-            return "OK".equals(lockResult);
+            return CommonConstant.OK.equals(lockResult);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("can not set value to redis: {}", e.getMessage());
         }
         return false;
     }
