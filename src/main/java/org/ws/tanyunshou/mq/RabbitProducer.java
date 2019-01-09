@@ -12,6 +12,9 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.async.DeferredResult;
+import org.ws.tanyunshou.message.ResponseMessage;
+import org.ws.tanyunshou.task.MessageTask;
 import org.ws.tanyunshou.vo.Amount;
 
 import java.math.BigDecimal;
@@ -28,9 +31,10 @@ public class RabbitProducer {
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
-    public void sendMessage(Amount amount) {
-        logger.debug("send message: {}", amount.toString());
-        rabbitTemplate.convertAndSend(RabbitConstant.EXCHANGE, RabbitConstant.AMOUNT_ROUTING_KEY, amount);
+    public void sendMessage(MessageTask<Amount> task) {
+        logger.debug("send message: {}", task);
+        rabbitTemplate.convertAndSend(RabbitConstant.EXCHANGE,
+                RabbitConstant.AMOUNT_ROUTING_KEY, task);
     }
 
     public void sendMoney(BigDecimal money) {

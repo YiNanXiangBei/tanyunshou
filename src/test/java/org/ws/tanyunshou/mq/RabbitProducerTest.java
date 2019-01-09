@@ -32,7 +32,7 @@ public class RabbitProducerTest {
     @Test
     public void sendMessage() throws JsonProcessingException {
         Amount amount = new Amount("12ewe11", new BigDecimal(212), Thread.currentThread().getName());
-        producer.sendMessage(amount);
+        producer.sendMessage(null);
     }
 
 

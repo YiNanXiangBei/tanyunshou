@@ -9,9 +9,11 @@ import org.springframework.stereotype.Component;
 import org.ws.tanyunshou.exception.InsufficientAmountException;
 import org.ws.tanyunshou.service.IAmountService;
 import org.ws.tanyunshou.task.IncreaseAmountTask;
+import org.ws.tanyunshou.task.MessageTask;
 import org.ws.tanyunshou.util.CommonConstant;
 import org.ws.tanyunshou.util.CommonTools;
 import org.ws.tanyunshou.util.HttpRequestMap;
+import org.ws.tanyunshou.util.MessageQueue;
 import org.ws.tanyunshou.vo.Amount;
 
 import java.math.BigDecimal;
@@ -27,6 +29,9 @@ public class RabbitConsumer {
 
     @Autowired
     private IAmountService amountService;
+
+    @Autowired
+    private MessageQueue queue;
 
     private ThreadPoolExecutor incPoolExec = new ThreadPoolExecutor(10, 15,
             1, TimeUnit.SECONDS,
@@ -45,14 +50,14 @@ public class RabbitConsumer {
 
     @RabbitListener(queues = RabbitConstant.AMOUNT_QUEUE, containerFactory = "multiListenerContainer")
     @RabbitHandler
-    public void process(Amount amount) {
+    public void process(MessageTask<Amount> task) {
 
         CompletableFuture
                 .supplyAsync(() -> {
-                    logger.info("update amount: {}, queue name: {}, current thread: {}, queue size: {}", amount.toString(),
+                    logger.info("update amount: {}, queue name: {}, current thread: {}, queue size: {}", task.toString(),
                             RabbitConstant.AMOUNT_QUEUE, Thread.currentThread().getName(), HttpRequestMap.size());
                     try {
-                        return amountService.updateAmount(amount);
+                        return amountService.updateAmount(task.getMessage());
                     } catch (InsufficientAmountException e) {
                         logger.error("can not update amount, because {}", e.toString());
                     }
@@ -61,10 +66,13 @@ public class RabbitConsumer {
                 .thenAccept(amount1 -> {
                     try {
                         if (amount1 == null) {
-                            HttpRequestMap.put("#" + amount.getSerialNo(), CommonConstant.AMOUNT);
+//                            HttpRequestMap.put("#" + amount.getSerialNo(), CommonConstant.AMOUNT);
+                            task.setMessage(CommonConstant.AMOUNT);
                         } else {
-                            HttpRequestMap.put("#" + amount.getSerialNo(), amount1);
+//                            HttpRequestMap.put("#" + amount.getSerialNo(), amount1);
+                            task.setMessage(amount1);
                         }
+                        queue.put(task);
                     } catch (InterruptedException e) {
                         logger.error("HttpRequestMap put val error: {}", e.toString());
                     }
