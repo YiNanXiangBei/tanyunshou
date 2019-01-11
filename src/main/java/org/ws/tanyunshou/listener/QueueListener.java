@@ -4,9 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.async.DeferredResult;
 import org.ws.tanyunshou.message.ResponseMessage;
 import org.ws.tanyunshou.task.MessageTask;
 import org.ws.tanyunshou.util.CommonConstant;
+import org.ws.tanyunshou.util.HttpRequestMap;
 import org.ws.tanyunshou.util.MessageQueue;
 import org.ws.tanyunshou.vo.Amount;
 
@@ -18,6 +20,9 @@ import org.ws.tanyunshou.vo.Amount;
 public class QueueListener implements ApplicationListener<ContextRefreshedEvent> {
 
     @Autowired
+    private HttpRequestMap hashMap;
+
+    @Autowired
     private MessageQueue queue;
 
     @Override
@@ -25,10 +30,13 @@ public class QueueListener implements ApplicationListener<ContextRefreshedEvent>
         new Thread(() -> {
             while (true) {
                 try {
+                    System.out.println("11111111");
                     MessageTask<Amount> task = queue.get();
                     ResponseMessage message = new ResponseMessage(CommonConstant.SUCCESS_RESPONSE,
                             task.getMessage(), CommonConstant.SUCCESS_REQUEST_MESSAGE);
-                            task.getResult().setResult(message);
+                    DeferredResult<ResponseMessage> result = hashMap.take(task.getCode());
+                    System.out.println(result);
+                    System.out.println(result.setResult(message));
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

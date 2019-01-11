@@ -28,6 +28,9 @@ public class RabbitConsumer {
     private static Logger logger = LoggerFactory.getLogger(RabbitConsumer.class);
 
     @Autowired
+    private HttpRequestMap hashMap;
+
+    @Autowired
     private IAmountService amountService;
 
     @Autowired
@@ -100,8 +103,9 @@ public class RabbitConsumer {
                     , getPoolExec)
                 .thenAccept(amount -> {
                     try {
-                        HttpRequestMap.put(serialNo, amount);
-                    } catch (InterruptedException e) {
+//                        HttpRequestMap.put(serialNo, amount);
+
+                    } catch (Exception e) {
                         logger.error("HttpRequestMap put val error: {}", e.toString());
                     }
                 });

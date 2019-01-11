@@ -30,6 +30,9 @@ public class AmountController {
     private IAmountService amountService;
 
     @Autowired
+    private HttpRequestMap hashMap;
+
+    @Autowired
     private RabbitProducer producer;
 
 
@@ -40,17 +43,19 @@ public class AmountController {
 
     @PostMapping(value = "/update")
     public DeferredResult<ResponseMessage> updateAmount(Amount amount) {
-        DeferredResult<ResponseMessage> result = new DeferredResult<>(10000L);
-        MessageTask<Amount> task = new MessageTask<>(result, amount, false);
+        DeferredResult<ResponseMessage> result = new DeferredResult<>(100000L);
+        String code = String.valueOf(result.hashCode());
+        hashMap.put(code, result);
+        MessageTask<Amount> task = new MessageTask<>(code, amount);
         producer.sendMessage(task);
 
         ResponseMessage message = new ResponseMessage(CommonConstant.INTERNAL_SERVER_ERROR,
                 null, CommonConstant.SERVICE_UNAVAILABLE_MESSAGE);
 
-        result.onTimeout(() -> {
-            task.setTimeout(false);
-            result.setResult(message);
-        });
+//        result.onTimeout(() -> {
+//            task.setTimeout(true);
+//            result.setErrorResult(message);
+//        });
 
 
 //        try {
@@ -77,12 +82,13 @@ public class AmountController {
         ResponseMessage message = new ResponseMessage(CommonConstant.INTERNAL_SERVER_ERROR,
                 null, CommonConstant.SERVICE_UNAVAILABLE_MESSAGE);
         try {
-            Amount amount = HttpRequestMap.take(serialNo);
+//            Amount amount = HttpRequestMap.take(serialNo);
+            Amount amount = null;
             message.setCode(CommonConstant.SUCCESS_RESPONSE);
             message.setData(amount);
             message.setMessage(CommonConstant.SUCCESS_REQUEST_MESSAGE);
             return message;
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             logger.error("can not get amount, serial no: {}", serialNo);
         }
         return message;

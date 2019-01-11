@@ -9,27 +9,24 @@ import org.ws.tanyunshou.message.ResponseMessage;
  */
 public class MessageTask<T> {
 
-    private DeferredResult<ResponseMessage> result;
+    private String code;
 
     private T message;
-
-    private boolean isTimeout;
 
     private MessageTask() {
     }
 
-    public MessageTask(DeferredResult<ResponseMessage> result, T message, boolean isTimeout) {
-        this.result = result;
+    public MessageTask(String code, T message) {
+        this.code = code;
         this.message = message;
-        this.isTimeout = isTimeout;
     }
 
-    public DeferredResult<ResponseMessage> getResult() {
-        return result;
+    public String getCode() {
+        return code;
     }
 
-    public void setResult(DeferredResult<ResponseMessage> result) {
-        this.result = result;
+    public void setCode(String code) {
+        this.code = code;
     }
 
     public T getMessage() {
@@ -40,20 +37,11 @@ public class MessageTask<T> {
         this.message = message;
     }
 
-    public boolean isTimeout() {
-        return isTimeout;
-    }
-
-    public void setTimeout(boolean timeout) {
-        isTimeout = timeout;
-    }
-
     @Override
     public String toString() {
         final StringBuffer sb = new StringBuffer("MessageTask{");
-        sb.append("result=").append(result);
+        sb.append("code='").append(code).append('\'');
         sb.append(", message=").append(message);
-        sb.append(", isTimeout=").append(isTimeout);
         sb.append('}');
         return sb.toString();
     }
