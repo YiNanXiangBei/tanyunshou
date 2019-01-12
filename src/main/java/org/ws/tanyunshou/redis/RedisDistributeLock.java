@@ -82,7 +82,7 @@ public class RedisDistributeLock extends AbstractDistributeLockImpl {
                     redisTemplate.getStringSerializer(),
                     Collections.singletonList(key),
                     lockFlag.get());
-            return null != releaseResult && releaseResult.equals("1");
+            return "1".equals(releaseResult);
         } catch (Exception e) {
             logger.error("release locked error, occured an exception {}", e);
         } finally {

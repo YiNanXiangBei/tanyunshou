@@ -10,10 +10,7 @@ import org.ws.tanyunshou.exception.InsufficientAmountException;
 import org.ws.tanyunshou.service.IAmountService;
 import org.ws.tanyunshou.task.IncreaseAmountTask;
 import org.ws.tanyunshou.task.MessageTask;
-import org.ws.tanyunshou.util.CommonConstant;
-import org.ws.tanyunshou.util.CommonTools;
-import org.ws.tanyunshou.util.HttpRequestMap;
-import org.ws.tanyunshou.util.MessageQueue;
+import org.ws.tanyunshou.util.*;
 import org.ws.tanyunshou.vo.Amount;
 
 import java.math.BigDecimal;
@@ -29,6 +26,9 @@ public class RabbitConsumer {
 
     @Autowired
     private HttpRequestMap hashMap;
+
+    @Autowired
+    private HttpRequestSerialNoMap serialNoMap;
 
     @Autowired
     private IAmountService amountService;
@@ -58,7 +58,7 @@ public class RabbitConsumer {
         CompletableFuture
                 .supplyAsync(() -> {
                     logger.info("update amount: {}, queue name: {}, current thread: {}, queue size: {}", task.toString(),
-                            RabbitConstant.AMOUNT_QUEUE, Thread.currentThread().getName(), HttpRequestMap.size());
+                            RabbitConstant.AMOUNT_QUEUE, Thread.currentThread().getName(), hashMap.size());
                     try {
                         return amountService.updateAmount(task.getMessage());
                     } catch (InsufficientAmountException e) {
@@ -69,10 +69,8 @@ public class RabbitConsumer {
                 .thenAccept(amount1 -> {
                     try {
                         if (amount1 == null) {
-//                            HttpRequestMap.put("#" + amount.getSerialNo(), CommonConstant.AMOUNT);
                             task.setMessage(CommonConstant.AMOUNT);
                         } else {
-//                            HttpRequestMap.put("#" + amount.getSerialNo(), amount1);
                             task.setMessage(amount1);
                         }
                         queue.put(task);
@@ -95,18 +93,18 @@ public class RabbitConsumer {
     @RabbitListener(queues = RabbitConstant.SERIAL_NO_QUEUE, containerFactory = "multiListenerContainer")
     @RabbitHandler
     public void processSerialNo(String serialNo) {
+        MessageTask<Amount> task = new MessageTask<>()
         CompletableFuture
                 .supplyAsync(() -> {
                     logger.info("get serial no: {}, queue name: {}, current thread: {}, queue size: {}", serialNo,
-                            RabbitConstant.SERIAL_NO_QUEUE, Thread.currentThread().getName(), HttpRequestMap.size());
+                            RabbitConstant.SERIAL_NO_QUEUE, Thread.currentThread().getName(), serialNoMap.size());
                     return amountService.findAmountBySerialNo(serialNo); }
                     , getPoolExec)
                 .thenAccept(amount -> {
                     try {
-//                        HttpRequestMap.put(serialNo, amount);
-
+                        serialNoMap.put(serialNo, amount);
                     } catch (Exception e) {
-                        logger.error("HttpRequestMap put val error: {}", e.toString());
+                        logger.error("HttpRequestSerialNoMap put val error: {}", e.toString());
                     }
                 });
     }

@@ -43,7 +43,7 @@ public class AmountController {
 
     @PostMapping(value = "/update")
     public DeferredResult<ResponseMessage> updateAmount(Amount amount) {
-        DeferredResult<ResponseMessage> result = new DeferredResult<>(100000L);
+        DeferredResult<ResponseMessage> result = new DeferredResult<>(60000L);
         String code = String.valueOf(result.hashCode());
         hashMap.put(code, result);
         MessageTask<Amount> task = new MessageTask<>(code, amount);
@@ -52,32 +52,18 @@ public class AmountController {
         ResponseMessage message = new ResponseMessage(CommonConstant.INTERNAL_SERVER_ERROR,
                 null, CommonConstant.SERVICE_UNAVAILABLE_MESSAGE);
 
-//        result.onTimeout(() -> {
-//            task.setTimeout(true);
-//            result.setErrorResult(message);
-//        });
-
-
-//        try {
-//            Amount newAmount = HttpRequestMap.take("#" + amount.getSerialNo());
-//            message.setData(newAmount);
-//            if (newAmount == CommonConstant.AMOUNT) {
-//                message.setCode(CommonConstant.SUCCESS_RESPONSE);
-//                message.setMessage(CommonConstant.INSUFFICIENT_AMOUNT);
-//            } else if (newAmount != null){
-//                message.setCode(CommonConstant.SUCCESS_RESPONSE);
-//                message.setMessage(CommonConstant.SUCCESS_REQUEST_MESSAGE);
-//            }
-//            return message;
-//        } catch (InterruptedException e) {
-//            logger.error("can not get new amount, serial no: {}", amount.getSerialNo());
-//        }
+        result.onTimeout(() -> {
+            result.setErrorResult(message);
+        });
 
         return result;
     }
 
     @GetMapping(value = "/get")
     public ResponseMessage findAmount(String serialNo) {
+        DeferredResult<ResponseMessage> result = new DeferredResult<>();
+        String code = String.valueOf(result.hashCode());
+        hashMap.put(code, result);
         producer.sendSerialNo(serialNo);
         ResponseMessage message = new ResponseMessage(CommonConstant.INTERNAL_SERVER_ERROR,
                 null, CommonConstant.SERVICE_UNAVAILABLE_MESSAGE);

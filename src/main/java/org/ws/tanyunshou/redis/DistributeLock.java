@@ -56,13 +56,13 @@ public @interface DistributeLock {
      * 重试的时间间隔，设置GIVEUP忽略此项
      * @return
      */
-    long sleepMills() default 2000;
+    long sleepMills() default 1000;
 
     /**
      * 重试次数
      * @return
      */
-    int retryTimes() default 5;
+    int retryTimes() default 10;
 
 
 }

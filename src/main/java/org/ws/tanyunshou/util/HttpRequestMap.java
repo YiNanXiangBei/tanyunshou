@@ -43,7 +43,7 @@ public class HttpRequestMap {
         return result;
     }
 
-    public static int size() {
+    public int size() {
         return hashMap.size();
     }
 
