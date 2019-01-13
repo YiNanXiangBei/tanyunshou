@@ -1,8 +1,5 @@
 package org.ws.tanyunshou.task;
 
-import org.springframework.web.context.request.async.DeferredResult;
-import org.ws.tanyunshou.message.ResponseMessage;
-
 /**
  * @author yinan
  * @date 19-1-9

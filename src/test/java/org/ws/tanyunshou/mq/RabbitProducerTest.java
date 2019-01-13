@@ -44,7 +44,7 @@ public class RabbitProducerTest {
 
     @Test
     public void sendSerialNo() {
-        producer.sendSerialNo("e2da82c24e254bbaa324e4cb662f2ee6");
+        producer.sendSerialNo(null);
     }
 
     @Test

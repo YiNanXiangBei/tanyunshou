@@ -6,7 +6,9 @@ import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.async.DeferredResult;
 import org.ws.tanyunshou.exception.InsufficientAmountException;
+import org.ws.tanyunshou.message.ResponseMessage;
 import org.ws.tanyunshou.service.IAmountService;
 import org.ws.tanyunshou.task.IncreaseAmountTask;
 import org.ws.tanyunshou.task.MessageTask;
@@ -26,9 +28,6 @@ public class RabbitConsumer {
 
     @Autowired
     private HttpRequestMap hashMap;
-
-    @Autowired
-    private HttpRequestSerialNoMap serialNoMap;
 
     @Autowired
     private IAmountService amountService;
@@ -92,19 +91,22 @@ public class RabbitConsumer {
 
     @RabbitListener(queues = RabbitConstant.SERIAL_NO_QUEUE, containerFactory = "multiListenerContainer")
     @RabbitHandler
-    public void processSerialNo(String serialNo) {
-        MessageTask<Amount> task = new MessageTask<>()
+    public void processSerialNo(MessageTask<String> task) {
         CompletableFuture
                 .supplyAsync(() -> {
-                    logger.info("get serial no: {}, queue name: {}, current thread: {}, queue size: {}", serialNo,
-                            RabbitConstant.SERIAL_NO_QUEUE, Thread.currentThread().getName(), serialNoMap.size());
-                    return amountService.findAmountBySerialNo(serialNo); }
+                    logger.info("get serial no: {}, queue name: {}, current thread: {}, queue size: {}", task.getMessage(),
+                            RabbitConstant.SERIAL_NO_QUEUE, Thread.currentThread().getName(), hashMap.size());
+                    return amountService.findAmountBySerialNo(task.getMessage()); }
                     , getPoolExec)
                 .thenAccept(amount -> {
                     try {
-                        serialNoMap.put(serialNo, amount);
+                        DeferredResult<ResponseMessage> result = hashMap.take(task.getCode());
+                        String newKey = String.valueOf(amount.hashCode());
+                        hashMap.put(newKey, result);
+                        MessageTask<Amount> taskAmount = new MessageTask<>(newKey, amount);
+                        queue.put(taskAmount);
                     } catch (Exception e) {
-                        logger.error("HttpRequestSerialNoMap put val error: {}", e.toString());
+                        logger.error("HttpRequestMap put val error: {}", e.toString());
                     }
                 });
     }

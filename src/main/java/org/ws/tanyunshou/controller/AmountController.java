@@ -48,7 +48,6 @@ public class AmountController {
         hashMap.put(code, result);
         MessageTask<Amount> task = new MessageTask<>(code, amount);
         producer.sendMessage(task);
-
         ResponseMessage message = new ResponseMessage(CommonConstant.INTERNAL_SERVER_ERROR,
                 null, CommonConstant.SERVICE_UNAVAILABLE_MESSAGE);
 
@@ -60,24 +59,30 @@ public class AmountController {
     }
 
     @GetMapping(value = "/get")
-    public ResponseMessage findAmount(String serialNo) {
-        DeferredResult<ResponseMessage> result = new DeferredResult<>();
+    public DeferredResult<ResponseMessage> findAmount(String serialNo) {
+        DeferredResult<ResponseMessage> result = new DeferredResult<>(60000L);
         String code = String.valueOf(result.hashCode());
         hashMap.put(code, result);
-        producer.sendSerialNo(serialNo);
+        MessageTask<String> task = new MessageTask<>(code, serialNo);
+        producer.sendSerialNo(task);
         ResponseMessage message = new ResponseMessage(CommonConstant.INTERNAL_SERVER_ERROR,
                 null, CommonConstant.SERVICE_UNAVAILABLE_MESSAGE);
-        try {
-//            Amount amount = HttpRequestMap.take(serialNo);
-            Amount amount = null;
-            message.setCode(CommonConstant.SUCCESS_RESPONSE);
-            message.setData(amount);
-            message.setMessage(CommonConstant.SUCCESS_REQUEST_MESSAGE);
-            return message;
-        } catch (Exception e) {
-            logger.error("can not get amount, serial no: {}", serialNo);
-        }
-        return message;
+        result.onTimeout(() -> {
+            result.setErrorResult(message);
+        });
+
+//        try {
+////            Amount amount = HttpRequestMap.take(serialNo);
+//            Amount amount = null;
+//            message.setCode(CommonConstant.SUCCESS_RESPONSE);
+//            message.setData(amount);
+//            message.setMessage(CommonConstant.SUCCESS_REQUEST_MESSAGE);
+//            return message;
+//        } catch (Exception e) {
+//            logger.error("can not get amount, serial no: {}", serialNo);
+//        }
+//        return message;
+        return result;
     }
 
 }

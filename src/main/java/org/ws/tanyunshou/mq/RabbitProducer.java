@@ -42,9 +42,9 @@ public class RabbitProducer {
         rabbitTemplate.convertAndSend(RabbitConstant.EXCHANGE, RabbitConstant.MONEY_ROUTING_KEY, money);
     }
 
-    public void sendSerialNo(String serialNo) {
-        logger.debug("send serial no: {}", serialNo);
-        rabbitTemplate.convertAndSend(RabbitConstant.EXCHANGE, RabbitConstant.SERIAL_ROUTING_KEY, serialNo);
+    public void sendSerialNo(MessageTask<String> task) {
+        logger.debug("send serial no task: {}", task);
+        rabbitTemplate.convertAndSend(RabbitConstant.EXCHANGE, RabbitConstant.SERIAL_ROUTING_KEY, task);
     }
 
 }
