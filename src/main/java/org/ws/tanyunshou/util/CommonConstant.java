@@ -10,5 +10,7 @@ public class CommonConstant {
 
     public final static String LOCK_NAMESPACE = "lock-namespace";
 
+    public final static String PATH = "/test";
+
 
 }

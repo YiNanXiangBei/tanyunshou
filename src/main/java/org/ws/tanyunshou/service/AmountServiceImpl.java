@@ -12,7 +12,9 @@ import org.ws.tanyunshou.config.DataSourceNames;
 import org.ws.tanyunshou.config.TargetDataSource;
 import org.ws.tanyunshou.dao.IAmountDao;
 import org.ws.tanyunshou.redis.RedisConstant;
+import org.ws.tanyunshou.util.CommonConstant;
 import org.ws.tanyunshou.vo.Amount;
+import org.ws.tanyunshou.zkdistribute.DistributeLock;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -29,6 +31,9 @@ public class AmountServiceImpl implements IAmountService{
     private static Logger logger = LoggerFactory.getLogger(AmountServiceImpl.class);
 
     private ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+
+    @Autowired
+    private DistributeLock lock;
 
     @Autowired
     private IAmountDao amountDao;
@@ -77,12 +82,14 @@ public class AmountServiceImpl implements IAmountService{
     @TargetDataSource
     @Override
     public Amount updateAmount(Amount amount) {
-        readWriteLock.writeLock().lock();
+        lock.lock(CommonConstant.PATH);
+//        readWriteLock.writeLock().lock();
         Amount oldAmount = amountDao.findAmountBySerialNo(amount.getSerialNo());
         amount.setMoney(amount.getMoney().add(oldAmount.getMoney()));
         logger.info("updateAmount, amount: {}, thread name: {}", amount.toString(), Thread.currentThread().getName());
         rellayUpdateAmount(amount);
-        readWriteLock.writeLock().unlock();
+//        readWriteLock.writeLock().unlock();
+        lock.unlock(CommonConstant.PATH);
         return amount;
     }
 
