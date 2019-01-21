@@ -17,6 +17,8 @@ import java.util.concurrent.CountDownLatch;
 /**
  * @author yinan
  * @date 19-1-20
+ * 缺点一：触发惊群效应，由于lock()方法的线程不安全性，导致多个线程同时获取到的downlatch对象是同一个，
+ * 这样当删除子节点时会存在多个线程同时被唤醒竞争同一个对象
  */
 @Component
 public class DistributeLock implements InitializingBean {
@@ -35,16 +37,20 @@ public class DistributeLock implements InitializingBean {
      */
     public void lock(String path) {
         String keyPath = CommonConstant.ROOT_PATH_LOCK + path;
+        logger.info("distribute lock to being got ...");
         for (;;) {
             try {
-                framework
-                        .create()
-                        .creatingParentsIfNeeded()
-                        .withMode(CreateMode.EPHEMERAL)
-                        .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
-                        .forPath(keyPath);
-                logger.info("success to acquire lock for path: {}", keyPath);
-                break;
+//                synchronized (this) {
+                    framework
+                            .create()
+                            .creatingParentsIfNeeded()
+                            .withMode(CreateMode.EPHEMERAL)
+                            .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
+                            .forPath(keyPath);
+                    logger.info("success to acquire lock for path: {}", keyPath);
+                    break;
+//                }
+
             } catch (Exception e) {
                 logger.info("failed to acquired lock for path: {}", keyPath);
                 logger.info("while try again ......");
@@ -52,13 +58,14 @@ public class DistributeLock implements InitializingBean {
                     if (downLatch.getCount() <= 0) {
                         downLatch = new CountDownLatch(1);
                     }
+                    logger.info("get downlatch: {}", downLatch);
                     downLatch.await();
                 } catch (InterruptedException e1) {
                     logger.error("failed to try, caused by {}", e1.toString());
                 }
             }
         }
-
+        logger.info("get out success !");
     }
 
     public boolean unlock(String path) {
@@ -85,11 +92,13 @@ public class DistributeLock implements InitializingBean {
         final PathChildrenCache cache = new PathChildrenCache(framework, keyPath, false);
         cache.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
         cache.getListenable().addListener((client, event) -> {
+            //监听子节点被移除
             if (event.getType().equals(PathChildrenCacheEvent.Type.CHILD_REMOVED)) {
                 String oldPath = event.getData().getPath();
                 logger.info("last node {} has been unlocked", oldPath);
                 if (oldPath.contains(path)) {
                     //释放计数器，让当前请求获取锁
+                    logger.info("release downlatch: {}", downLatch);
                     downLatch.countDown();
                 }
             }
@@ -108,6 +117,7 @@ public class DistributeLock implements InitializingBean {
                         .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
                         .forPath(keyPath);
             }
+            logger.info("begin to create watcher ");
             addWatcher(CommonConstant.ROOT_PATH_LOCK);
             logger.info("root path's watcher create success!");
         } catch (Exception e) {

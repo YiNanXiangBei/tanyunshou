@@ -82,6 +82,7 @@ public class AmountServiceImpl implements IAmountService{
     @TargetDataSource
     @Override
     public Amount updateAmount(Amount amount) {
+        logger.info("begin to get lock ...");
         lock.lock(CommonConstant.PATH);
 //        readWriteLock.writeLock().lock();
         Amount oldAmount = amountDao.findAmountBySerialNo(amount.getSerialNo());
@@ -89,7 +90,7 @@ public class AmountServiceImpl implements IAmountService{
         logger.info("updateAmount, amount: {}, thread name: {}", amount.toString(), Thread.currentThread().getName());
         rellayUpdateAmount(amount);
 //        readWriteLock.writeLock().unlock();
-        lock.unlock(CommonConstant.PATH);
+        logger.info("success : {}",lock.unlock(CommonConstant.PATH));
         return amount;
     }
 
