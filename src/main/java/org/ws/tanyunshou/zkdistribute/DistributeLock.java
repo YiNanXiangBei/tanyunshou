@@ -19,6 +19,8 @@ import java.util.concurrent.CountDownLatch;
  * @date 19-1-20
  * 缺点一：触发惊群效应，由于lock()方法的线程不安全性，导致多个线程同时获取到的downlatch对象是同一个，
  * 这样当删除子节点时会存在多个线程同时被唤醒竞争同一个对象
+ * 缺点二：高并发条件下出现部分请求丢失的情况，例如有三百个请求，实际只有297个请求获取到锁，
+ * 剩下的3个无缘无故丢失，既没有抛出异常也没有获取到锁
  */
 @Component
 public class DistributeLock implements InitializingBean {
@@ -38,7 +40,7 @@ public class DistributeLock implements InitializingBean {
     public void lock(String path) {
         String keyPath = CommonConstant.ROOT_PATH_LOCK + path;
         logger.info("distribute lock to being got ...");
-        for (;;) {
+        while (true) {
             try {
 //                synchronized (this) {
                     framework

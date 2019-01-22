@@ -1,5 +1,6 @@
 package org.ws.tanyunshou.synch;
 
+import java.util.*;
 /**
  * @author yinan
  * @date 19-1-1
@@ -7,9 +8,14 @@ package org.ws.tanyunshou.synch;
 public class Synchronized {
 
     public static void main(String[] args) {
-        synchronized (Synchronized.class) {
-            System.out.println("Synchronized");
-        }
+        List<String> list = new ArrayList<>();
+        list.add("1");
+        list.add("3");
+        list.add("5");
+        System.out.println(list.indexOf("4"));
+
+        String[] strings = new String[] {"2", "3", "5"};
+
     }
 
 }
